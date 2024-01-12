@@ -1,0 +1,8 @@
+Django==3.2.16
+Pillow
+django-colorfield
+djangorestframework
+webcolors
+django-filters
+djangorestframework_simplejwt
+djoser
