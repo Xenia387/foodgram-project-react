@@ -27,12 +27,10 @@ from api.permissions import (
     IsAdminOrOther,
     ReadOnly,
 )
-from foodgram.models import (
+from recipes.models import (
     Ingredient,
     Recipe,
     Tag,
-)
-from lists.models import (
     Favorite,
     Follow,
     ShoppingList,

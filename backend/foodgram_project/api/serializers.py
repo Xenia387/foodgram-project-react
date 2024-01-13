@@ -19,12 +19,10 @@ from foodgram_project.settings import (
     EMAIL_MAX_LENGTH,
     USERNAME_MAX_LENGTH,
 )
-from lists.models import (
+from recipes.models import (
     Favorite,
     Follow,
     ShoppingList,
-)
-from foodgram.models import (
     Ingredient,
     IngredientRecipe,
     Recipe,
@@ -388,13 +386,22 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def ingredients_add(self, validated_data):
         pass
 
-    def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
-        return recipe
+        def create(self, validated_data):
+            author = self.context.get('request').user
+            ingredients = validated_data.pop('ingredients')
+            tags = validated_data.pop('tags')
+            recipe = Recipe.objects.create(**validated_data)
+            recipe.tags.set(tags)
+            self.create_ingredients_amounts(recipe=recipe, author=author)
+            return recipe
+
+    # def create(self, validated_data):
+    #     ingredients = validated_data.pop('ingredients')
+    #     tags = validated_data.pop('tags')
+    #     recipe = Recipe.objects.create(**validated_data)
+    #     recipe.tags.set(tags)
+    #     self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
+    #     return recipe
 
 
 class RecipeInFavoriteAndShopList(serializers.ModelSerializer):

@@ -42,13 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'django_filters',
+    # 'django_filters',
     'djoser',
     # 'rest_framework_simplejwt',
     'rest_framework.authtoken',
     'users.apps.UsersConfig',
-    'foodgram.apps.FoodgramConfig',
-    'lists.apps.ListsConfig',
+    'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
 ]
 

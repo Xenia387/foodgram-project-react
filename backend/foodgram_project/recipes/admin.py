@@ -1,11 +1,14 @@
 from django.contrib import admin
 
-from foodgram.models import (
+from recipes.models import (
     Ingredient,
     IngredientRecipe,
     Recipe,
     Tag,
     TagRecipe,
+    ShoppingList,
+    Favorite,
+    Follow,
 )
 
 
@@ -54,6 +57,30 @@ class TagAdmin(admin.ModelAdmin):
     list_filter = ('name',)
 
 
+class ShoppingListAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'recipe',
+    )
+
+
+class FavoriteAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'recipe',
+    )
+
+
+class FollowAdmin(admin.ModelAdmin):
+    list_display = (
+        'user',
+        'author',
+    )
+
+
+admin.site.register(ShoppingList)
+admin.site.register(Favorite, FavoriteAdmin)
+admin.site.register(Follow, FollowAdmin)
 admin.site.register(Ingredient, IngredientAdmin)
 admin.site.register(IngredientRecipe)
 admin.site.register(TagRecipe)
