@@ -14,7 +14,7 @@ from pathlib import Path
 
 from datetime import timedelta
 
-from api.pagination import CustomPagination
+# from api.pagination import CustomPagination
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -146,7 +146,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated',],
     'DEFAULT_AUTHENTICATION_CLASSES': ['rest_framework.authentication.TokenAuthentication'],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
-    'DEFAULT_PAGINATION_CLASS': ['api.pagination.CustomPaginations'],
+    'DEFAULT_PAGINATION_CLASS': ['api.pagination.CustomPagination'],
 }
 
 DJOSER = {
