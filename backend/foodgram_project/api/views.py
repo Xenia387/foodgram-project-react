@@ -1,9 +1,12 @@
 from django.db.models import Sum
 from django.contrib.auth.tokens import default_token_generator
-from django_filters.rest_framework import DjangoFilterBackend
+from django_filters.rest_framework import DjangoFilterBackend # !!!!!!!!!!!
 from django.http import HttpResponse
 from djoser.views import UserViewSet
-from rest_framework import filters, mixins, permissions, status, viewsets
+from rest_framework import (
+    # filters,
+    mixins, permissions, status, viewsets
+)
 from django.shortcuts import render, get_object_or_404
 from rest_framework.decorators import api_view, action
 from rest_framework_simplejwt.tokens import AccessToken
@@ -27,17 +30,15 @@ from api.permissions import (
     IsAdminOrOther,
     ReadOnly,
 )
-from foodgram.models import (
+from recipes.models import (
     Ingredient,
     Recipe,
     Tag,
-)
-from lists.models import (
     Favorite,
     Follow,
     ShoppingList,
 )
-from users.models import CustomUser
+from users.models import User
 from api.serializers import (
     IngredientSerializer,
     TagSerializer,
@@ -99,16 +100,17 @@ class ListCreateDestroyViewSet(
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
-    # """Ингредиенты."""
+    """Ингредиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    filter_backends = [filters.SearchFilter,]
-    filter_backends = [DjangoFilterBackend]
+    # filter_backends = [filters.SearchFilter,] # от наставника
+    # filter_backends = [DjangoFilterBackend] # от наставника
     filterset_class = IngredientFilter
+    http_method_names = ('get',)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
-    # """Теги."""
+    """Теги."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
 
@@ -117,7 +119,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     """Рецепт."""
     queryset = Recipe.objects.all()
     pagination_class = RecipePagination
-    filter_backends = [DjangoFilterBackend]
+    # filter_backends = [DjangoFilterBackend] # от наставника
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
@@ -141,12 +143,12 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     def favorite(self, request, pk):
         user = self.request.user
         recipe = Recipe.objects.get(id=pk)
-        if Favorite.objects.create(user=user, recipe=recipe).exists():
-            return Response({'error': str('Непредвиденная ошибка')},
-                            status=status.HTTP_400_BAD_REQUEST)
-        if user.is_anonymous():
-            return Response({'error': str('Вы не авторизованы')},
-                            status=status.HTTP_401_UNAUTHORIZED)
+        # if Favorite.objects.filter(user=user, recipe=recipe).exists():
+        #     return Response({'error': str('Вы уже добавили этот рецепт в избранное')},
+        #                     status=status.HTTP_400_BAD_REQUEST)
+        # if user.is_anonymous():
+        #     return Response({'error': str('Вы не авторизованы')},
+        #                     status=status.HTTP_401_UNAUTHORIZED)
         Favorite.objects.creat(user=user, recipe=recipe)
         serializer = RecipeInFavoriteAndShopList(recipe)
         return Favorite.objects.filter(serializer.data, status=status.HTTP_201_CREATED)
@@ -175,30 +177,13 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     #     url_name='download_shopping_cart',
     # )
     # def dowload_shopping_list(self, request):
-    #     if request.user.user_anonymous():
-    #         return Response({'error': 'Пользователь не авторизован'})
-
-    #     ingredients = IngredientsAmountInShoppingCart.objects.filter(
-    #         recipe__shoppinglist__user=request.user
-    #     ).values(
-    #         'ingredient__name',
-    #         'ingredient__measurement_unit'
-    #     ).annotate(amount=Sum('amount'))
-    #     shopping_list = ''
-    #     for i in ingredients:
-    #         shopping_list.append(
-    #             f'{i["name"]} {i["measurement_unit"] - {i["amount"]}}'
-    #         )
-    #     response = HttpResponse(shopping_list, content_type='text/plain')
-    #     response['Conr=tent-Disposition'] = 'attachment: filename="shoppinglist.txt"'
-    #     return response
+        # pass
 
 
 # class UserViewSet(UserViewSet):
-class CustomUserViewSet(UserViewSet, ListCreateDestroyViewSet):
+class UserViewSet(UserViewSet, ListCreateDestroyViewSet):
     """Пользователи."""
-    queryset = CustomUser.objects.all()
-    filter_backends = [DjangoFilterBackend]
+    queryset = User.objects.all()
     pagination_class = CustomPagination
     http_method_names = ['post', 'delete', 'get']
 
@@ -213,16 +198,16 @@ class CustomUserViewSet(UserViewSet, ListCreateDestroyViewSet):
             # return UserSerializer
             return UserAfterRegistSerializer
 
-    # @action(
-    #     detail=False,
-    #     permission_classes=[IsAuthenticated,],
-    #     url_path='me',
-    #     url_name='me',
-    # )
-    # def me(self, request):
-    #     user = self.request.user
-    #     serializer = self.get_serializer(user)
-    #     return Response(serializer.data, status=status.HTTP_200_OK)
+    @action(
+        detail=False,
+        permission_classes=[IsAuthenticated,],
+        url_path='me',
+        url_name='me',
+    )
+    def me(self, request):
+        user = self.request.user
+        serializer = self.get_serializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
     # @action(
@@ -245,25 +230,25 @@ class CustomUserViewSet(UserViewSet, ListCreateDestroyViewSet):
     #     else:
     #         return Response({'field_name': str('Все поля обязательны для заполнения')}, status=status.HTTP_400_BAD_REQUEST)
 
-    # @action(
-    #     detail=True,
-    #     methods=['post'],
-    #     permission_classes=[IsAuthenticated,],
-    #     url_path='subcribe',
-    #     url_name='subcribe',
-    # )
-    # def subcribe(self, request, pk):
-    #     user = self.request.user
-    #     author = CustomUser.objects.get(id=pk)
-    #     if Follow.objects.create(user=user, author=author).exists():
-    #         return Response({'error': str('Непредвиденная ошибка')},
-    #                         status=status.HTTP_400_BAD_REQUEST)
-    #     if user.is_anonymous():
-    #         return Response({'error': str('Вы не авторизованы')},
-    #                         status=status.HTTP_401_UNAUTHORIZED)
-    #     Follow.objects.creat(user=user, rauthor=author)
-    #     serializer = RecipeInFavoriteAndShopList(author)
-    #     return Favorite.objects.filter(serializer.data, status=status.HTTP_201_CREATED)
+    @action(
+        detail=True,
+        methods=['post'],
+        permission_classes=[IsAuthenticated,],
+        url_path='subcribe',
+        url_name='subcribe',
+    )
+    def subcribe(self, request, pk):
+        user = self.request.user
+        author = User.objects.get(id=pk)
+        if Follow.objects.create(user=user, author=author).exists():
+            return Response({'error': str('Непредвиденная ошибка')},
+                            status=status.HTTP_400_BAD_REQUEST)
+        if user.is_anonymous():
+            return Response({'error': str('Вы не авторизованы')},
+                            status=status.HTTP_401_UNAUTHORIZED)
+        Follow.objects.creat(user=user, rauthor=author)
+        serializer = RecipeInFavoriteAndShopList(author)
+        return Favorite.objects.filter(serializer.data, status=status.HTTP_201_CREATED)
 
     # @action(
     #     detail=False,   # ?

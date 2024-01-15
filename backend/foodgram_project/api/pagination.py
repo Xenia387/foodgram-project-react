@@ -1,4 +1,4 @@
-from django.core import paginator
+# from django.core import paginator # от наставника
 from rest_framework.pagination import PageNumberPagination
 
 NUMBER: int = 6

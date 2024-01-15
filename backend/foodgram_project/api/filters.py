@@ -2,13 +2,11 @@ import django_filters
 from django_filters import rest_framework as filters
 from django_filters.rest_framework import FilterSet
 
-from foodgram.models import (
+from recipes.models import (
     Ingredient,
     Recipe,
     Tag,
-    CustomUser,
-)
-from lists.models import (
+    User,
     Favorite,
     ShoppingList,
 )

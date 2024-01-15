@@ -9,20 +9,16 @@ from api.views import (
     RecipeViewSet,
     TagViewSet,
     UserViewSet,
-    CustomUserViewSet,
+    UserViewSet,
     # UserReceiveTokenViewSet,
     # UserReadOnlyViewSet,
 )
 
 router = DefaultRouter()
 
-router.register(r'users', CustomUserViewSet, basename='users')
-
+router.register('users', UserViewSet, basename='users')
 router.register('tags', TagViewSet, basename='tags')
-
 router.register('recipes', RecipeViewSet, basename='recipes')
-
-
 router.register('ingredients', IngredientViewSet, basename='ingredients')
 
 
@@ -31,4 +27,3 @@ urlpatterns = [
     path('v1/', include(router.urls)),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]
-

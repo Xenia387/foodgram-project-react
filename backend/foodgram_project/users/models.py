@@ -2,20 +2,21 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 
 from foodgram_project.settings import (
-    EMAIL_MAX_LENGTH
+    EMAIL_MAX_LENGTH,
+    FIELDS_USER_MAX_LENGTH,
 )
 
 
-class CustomUser(AbstractUser):
+class User(AbstractUser):
     """Переопределённая модель пользователя"""
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = [
-        'username', 'first_name', 'last_name',
-        # 'password'
-    ]
+        'username', 'first_name', 'last_name']
     # password = models.CharField(
     #     max_length=150,
     #     verbose_name='password',
+    #     null=False,
+    #     blank=True,
     # )
     email = models.EmailField(
         unique=True,

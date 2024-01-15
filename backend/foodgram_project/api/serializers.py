@@ -17,20 +17,18 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from foodgram_project.settings import (
     EMAIL_MAX_LENGTH,
-    USERNAME_MAX_LENGTH,
+    FIELDS_USER_MAX_LENGTH,
 )
-from lists.models import (
+from recipes.models import (
     Favorite,
     Follow,
     ShoppingList,
-)
-from foodgram.models import (
     Ingredient,
     IngredientRecipe,
     Recipe,
     Tag,
 )
-from users.models import CustomUser
+from users.models import User
 
 
 class Base64ImageField(serializers.ImageField):
@@ -135,7 +133,7 @@ class UserAfterRegistSerializer(serializers.ModelSerializer):
     """Вывод информации о Пользователе после регистрации."""
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             'email',
             'id',
@@ -152,7 +150,7 @@ class UserSerializer(serializers.ModelSerializer):
     is_subscribed = serializers.SerializerMethodField(read_only=True)
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             'email',
             'id',
@@ -217,14 +215,14 @@ class UserSerializer(serializers.ModelSerializer):
 #         )
 
 
-class UserSignupSerializer(serializers.Serializer):
+class UserSignupSerializer(serializers.ModelSerializer):
     """Сериализатор регистрации."""
     email = serializers.EmailField(
         max_length=EMAIL_MAX_LENGTH,
         required=True
     )
     username = serializers.CharField(
-        max_length=USERNAME_MAX_LENGTH,
+        max_length=150,
         required=True
     )
     first_name = serializers.CharField(
@@ -238,7 +236,7 @@ class UserSignupSerializer(serializers.Serializer):
     )
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = (
             'email',
             'id',
@@ -281,14 +279,14 @@ class UserSignupSerializer(serializers.Serializer):
         return value
 
     def validate(self, data):
-        if CustomUser.objects.filter(email=data['email']).exists():
-            user = CustomUser.objects.get(email=data['email'])
+        if User.objects.filter(email=data['email']).exists():
+            user = User.objects.get(email=data['email'])
             if user.username != data['username']:
                 raise serializers.ValidationError(
                     'Для этого email уже существует другой пользователь'
                 )
-        if CustomUser.objects.filter(username=data['username']).exists():
-            user = CustomUser.objects.get(username=data['username'])
+        if User.objects.filter(username=data['username']).exists():
+            user = User.objects.get(username=data['username'])
             if user.email != data['email']:
                 raise serializers.ValidationError(
                     'Для этого пользователя указан другой email'
@@ -388,13 +386,22 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     def ingredients_add(self, validated_data):
         pass
 
-    def create(self, validated_data):
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(**validated_data)
-        recipe.tags.set(tags)
-        self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
-        return recipe
+        def create(self, validated_data):
+            author = self.context.get('request').user
+            ingredients = validated_data.pop('ingredients')
+            tags = validated_data.pop('tags')
+            recipe = Recipe.objects.create(**validated_data)
+            recipe.tags.set(tags)
+            self.create_ingredients_amounts(recipe=recipe, author=author)
+            return recipe
+
+    # def create(self, validated_data):
+    #     ingredients = validated_data.pop('ingredients')
+    #     tags = validated_data.pop('tags')
+    #     recipe = Recipe.objects.create(**validated_data)
+    #     recipe.tags.set(tags)
+    #     self.create_ingredients_amounts(recipe=recipe, ingredients=ingredients)
+    #     return recipe
 
 
 class RecipeInFavoriteAndShopList(serializers.ModelSerializer):
@@ -410,7 +417,7 @@ class ShoppingListSerializer(serializers.ModelSerializer):
 
     user = SlugRelatedField(
         slug_field='username',
-        queryset=CustomUser.objects.all(),
+        queryset=User.objects.all(),
     )
     recipe = SlugRelatedField(
         slug_field='name',
@@ -438,12 +445,12 @@ class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор подписки на Пользователя."""
     user = SlugRelatedField(
         slug_field='username',
-        queryset=CustomUser.objects.all(),
+        queryset=User.objects.all(),
         default=CurrentUserDefault(),
     )
     following = SlugRelatedField(
         slug_field='username',
-        queryset=CustomUser.objects.all(),
+        queryset=User.objects.all(),
     )
 
     class Meta:
@@ -469,7 +476,7 @@ class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор добавления в избранное."""
     user = SlugRelatedField(
         slug_field='username',
-        queryset=CustomUser.objects.all(),
+        queryset=User.objects.all(),
         default=CurrentUserDefault(),
     )
     recipe = SlugRelatedField(
@@ -500,7 +507,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
     new_password = serializers.CharField()
 
     class Meta:
-        model = CustomUser
+        model = User
         fields = ('current_password', 'new_password')
 
 
@@ -512,7 +519,7 @@ class UsersInSubscriptionSerializer(UserSerializer):
     recipes_count = serializers.SerializerMethodField(read_only=True)
 
     # class Meta:
-    #     model = CustomUser
+    #     model = User
     #     fields = (
     #         'email',
     #         'id',
