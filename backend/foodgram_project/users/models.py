@@ -16,7 +16,7 @@ class User(AbstractUser):
     #     max_length=150,
     #     verbose_name='password',
     #     null=False,
-    #     blank=True,
+    #     blank=False,
     # )
     email = models.EmailField(
         unique=True,
