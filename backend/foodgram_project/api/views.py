@@ -161,15 +161,3 @@ class UserViewSet(UserViewSet, ListCreateDestroyViewSet):
         user = self.request.user
         serializer = self.get_serializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-
-    @action(
-        detail=False,
-        permission_classes=[IsAuthenticated,],
-        url_path='subscribe',
-        url_name='subscribe',
-    )
-    def subscribe(self, request, pk):
-        user = request.user
-        author = User.objects.get(id=pk)
-        if Follow.objects.filter(user=user, author=author).exists():
-            return('error': 'Непредвиденная ошибка', status=status.HT)
