@@ -5,16 +5,18 @@ from django.core.validators import MaxValueValidator, MinValueValidator
 
 # from django.conf import settings
 from users.models import User
-# from users.models import CustomUser
+
+FIELDS_RECIPE_MODELS_MAX_LENGTH: int = 200
+FIELD_COLOR_MAX_LENGTH: int = 16
 
 
 class Tag(models.Model):
     """Тег"""
     name = models.CharField(
-        max_length=200,
+        max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
         verbose_name='Тег',
     )
-    color = models.CharField(max_length=16)
+    color = models.CharField(max_length=FIELD_COLOR_MAX_LENGTH)
     # color = ColorField(
     #     format='hex',
     #     default='#FF0000',
@@ -24,7 +26,7 @@ class Tag(models.Model):
     # )
     slug = models.SlugField(
         unique=True,
-        max_length=200,
+        max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
         verbose_name='Адрес тега',
     )
 
@@ -40,10 +42,10 @@ class Ingredient(models.Model):
     """Ингредиент"""
     name = models.CharField(
         verbose_name='Название ингредиента',
-        max_length=200,
+        max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
     )
     measurement_unit = models.CharField(
-        max_length=200,
+        max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
         verbose_name='Единица измерения',
     )
     amount = models.IntegerField()
@@ -69,16 +71,14 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe',
-        through_fields=('recipe', 'ingredient'),
-        related_name='recipes',
+        # through_fields=('recipe', 'ingredient'),
+        # related_name='recipes',
         verbose_name='Ингредиенты',
         help_text='Необходимые ингредиенты',
     )
     tags = models.ManyToManyField(
         Tag,
         blank=False,
-        # null=True,
-        # on_delete=models.SET_NULL,
         related_name='recipe',
         verbose_name='Тег',
         help_text='Тег, к которому будет относиться рецепт',
@@ -90,7 +90,7 @@ class Recipe(models.Model):
         help_text='Изображение',
     )
     name = models.TextField(
-        max_length=200,
+        max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
         verbose_name='Название',
         help_text='Название',
     )
@@ -100,6 +100,7 @@ class Recipe(models.Model):
     )
     cooking_time = models.IntegerField(
         verbose_name='Время приготовления в минутах',
+        null=False,
     )
     created = models.DateTimeField(
         'created',
@@ -175,20 +176,26 @@ class Favorite(models.Model):
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='user_favorite',
+        related_name='favorites',
         verbose_name='Вы',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='recipe_in_favorite',
+        related_name='favorites',
         verbose_name='Рецепт',
         help_text='Вы можете добавить этот рецепт в избранное',
     )
 
     class Meta:
-        unique_together = ('user', 'recipe')
+        # unique_together = ('user', 'recipe')
         verbose_name_plural = 'Избранное'
+        constraints = [
+            models.UniqueConstraint(
+                fields=('user', 'recipe'),
+                name='unique_favorite_user_recipe'
+            )
+        ]
 
     def __str__(self):
         return (f'Рецепт {self.recipe} был добавлен '
@@ -222,20 +229,24 @@ class Follow(models.Model):
 
 
 class ShoppingList(models.Model):
-    """Корзина покупок"""
+    """Список покупок"""
     user = models.ForeignKey(
         User,
         on_delete=models.CASCADE,
-        related_name='shoppinglist',
+        related_name='shoppings',
         verbose_name='Вы',
     )
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
-        related_name='shoppinglist',
+        related_name='shopping',
         verbose_name='Рецепт в корзине',
     )
 
     class Meta:
         unique_together = ('user', 'recipe')
         verbose_name_plural = 'Список покупок'
+
+    def __str__(self):
+        return (f'Рецепт {self.recipe} был добавлен '
+                f'в список покупок пользователем {self.user}')

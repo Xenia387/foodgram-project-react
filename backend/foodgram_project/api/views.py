@@ -1,10 +1,8 @@
 from django.db.models import Sum
-from django.contrib.auth.tokens import default_token_generator
 from django_filters.rest_framework import DjangoFilterBackend
 from django.http import HttpResponse
 from djoser.views import UserViewSet
 from rest_framework import (
-    # filters,
     mixins, permissions, status, viewsets
 )
 from django.shortcuts import render, get_object_or_404
@@ -17,10 +15,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
 
-
-
 from api.pagination import (
-    RecipePagination,
     CustomPagination,
 )
 from api.permissions import (
@@ -44,19 +39,12 @@ from api.serializers import (
     TagSerializer,
     UserAfterRegistSerializer,
     UserSerializer,
-    # UserRecieveTokenSerializer,
     UserSignupSerializer,
     RecipeReadOnlySerializer,
-    UsersInSubscriptionSerializer,
     RecipeCreateSerializer,
-    IngredientRecipeSerializer,
     FavoriteSerializer,
     FollowSerializer,
-    ChangePasswordSerializer,
-
     RecipeInFavoriteAndShopList,
-    IngredientsAmountInShoppingCart,
-    UsersInSubscriptionSerializer,
 )
 
 from api.permissions import (
@@ -103,8 +91,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """Ингредиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
-    # filter_backends = [filters.SearchFilter,]
-    # filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
     http_method_names = ('get',)
 
@@ -118,38 +104,33 @@ class TagViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ListCreateDestroyViewSet):
     """Рецепт."""
     queryset = Recipe.objects.all()
-    pagination_class = RecipePagination
-    # filter_backends = [DjangoFilterBackend]
+    pagination_class = CustomPagination
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'delete']:
             return RecipeCreateSerializer
-        if self.action in ['get']:
+        if self.action in ['list', 'retrieve']:
             return RecipeReadOnlySerializer
         else:
             return RecipeReadOnlySerializer
 
-    # def perform_create(self, serializer):
-    #     serializer.save(author=self.request.user)
 
-
-class UserViewSet(UserViewSet, ListCreateDestroyViewSet):
+class CustomUserViewSet(
+    UserViewSet,
+    ListCreateDestroyViewSet
+):
     """Пользователи."""
     queryset = User.objects.all()
     pagination_class = CustomPagination
-    http_method_names = ['post', 'delete', 'get']
 
     def get_serializer_class(self):
         if self.action in ['list', 'me', 'retrieve']:
             return UserSerializer
         if self.action in ['subcribe']:
             return UserSerializer
-        # if self.action in ['set_password']:
-        #     return ChangePasswordSerializer
-        else:
-            # return UserSerializer
-            return UserAfterRegistSerializer
+        if self.action in ['create']:
+            return UserSignupSerializer
 
     @action(
         detail=False,

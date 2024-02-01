@@ -42,11 +42,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'django_filters', # !!!!!!!!!!!!!!!!
+    'django_filters',
+    'rest_framework.authtoken',
     'djoser',
     # 'rest_framework_simplejwt',
-    'rest_framework.authtoken',
-    'users.apps.UsersConfig',
+    'users',
+    # 'users.apps.UsersConfig',
     'recipes.apps.RecipesConfig',
     'api.apps.ApiConfig',
 ]
@@ -139,28 +140,24 @@ STATIC_URL = '/static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-FIELDS_USER_MAX_LENGTH = 150
-EMAIL_MAX_LENGTH = 254
 
 REST_FRAMEWORK = {
     # 'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.IsAuthenticated',],
     'DEFAULT_PERMISSION_CLASSES': ['rest_framework.permissions.AllowAny',],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-        # 'rest_framework.authentication.SessionAuthentication',
     ],
     'DEFAULT_FILTER_BACKENDS': ['django_filters.rest_framework.DjangoFilterBackend'],
     # 'DEFAULT_PAGINATION_CLASS': ['api.pagination.CustomPagination'],
 }
 
 DJOSER = {
-    'LOGIN_FIELD': 'email',
-    'HIDE_USERS': False,
-    'SERIALIZERS': {
-        # 'user_create': 'api.serializers.UserSignupSerializer',
-        'user': 'api.serializers.UserAfterRegistSerializer',
-        'current_user': 'api.serializers.UserAfterRegistSerializer',
-    },
+    # 'LOGIN_FIELD': 'email',
+    # 'HIDE_USERS': False,
+    # 'SERIALIZERS': {
+    #     'set_password': 'api.serializers.ChangePasswordSerializer',
+    #     # 'user_create': 'api.serializers.UserSignupSerializer',
+    # },
     'PERMISSIONS': {
         'user': ['rest_framework.permissions.AllowAny'],
         'user_list': ['rest_framework.permissions.AllowAny'],

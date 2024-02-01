@@ -8,22 +8,23 @@ from api.views import (
     # RecipeDetailViewSet,
     RecipeViewSet,
     TagViewSet,
-    UserViewSet,
-    UserViewSet,
+    CustomUserViewSet,
+    # UserViewSet,
     # UserReceiveTokenViewSet,
     # UserReadOnlyViewSet,
 )
 
 router = DefaultRouter()
 
-router.register('users', UserViewSet, basename='users')
-router.register('tags', TagViewSet, basename='tags')
-router.register('recipes', RecipeViewSet, basename='recipes')
-router.register('ingredients', IngredientViewSet, basename='ingredients')
+router.register(r'users', CustomUserViewSet, basename='users')
+router.register(r'tags', TagViewSet, basename='tags')
+router.register(r'recipes', RecipeViewSet, basename='recipes')
+router.register(r'ingredients', IngredientViewSet, basename='ingredients')  
 
 
 urlpatterns = [
     path('', include(router.urls)),
     path('v1/', include(router.urls)),
+    path('auth/', include('djoser.urls')),
     re_path(r'^auth/', include('djoser.urls.authtoken')),
 ]
