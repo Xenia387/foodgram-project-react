@@ -11,6 +11,7 @@ from rest_framework_simplejwt.tokens import AccessToken
 from rest_framework.pagination import LimitOffsetPagination
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from django.contrib.contenttypes.models import ContentType
 
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
@@ -27,6 +28,7 @@ from api.permissions import (
 )
 from recipes.models import (
     Ingredient,
+    IngredientRecipe,
     Recipe,
     Tag,
     Favorite,
@@ -37,14 +39,15 @@ from users.models import User
 from api.serializers import (
     IngredientSerializer,
     TagSerializer,
-    UserAfterRegistSerializer,
     UserSerializer,
     UserSignupSerializer,
     RecipeReadOnlySerializer,
     RecipeCreateSerializer,
     FavoriteSerializer,
     FollowSerializer,
+    ShoppingListSerializer,
     RecipeInFavoriteAndShopList,
+    IngredientsAmountInShoppingCartSerializer,
 )
 
 from api.permissions import (
@@ -91,6 +94,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """Ингредиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    # filter_backends = [filters.SearchFilter,]
+    # filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
     http_method_names = ('get',)
 
@@ -110,7 +115,8 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     def get_serializer_class(self):
         if self.action in ['create', 'update', 'delete']:
             return RecipeCreateSerializer
-        if self.action in ['list', 'retrieve']:
+        if self.action in ['get']:
+        # if self.action in ['list', 'retrieve']:
             return RecipeReadOnlySerializer
         else:
             return RecipeReadOnlySerializer
@@ -125,12 +131,14 @@ class CustomUserViewSet(
     pagination_class = CustomPagination
 
     def get_serializer_class(self):
+        if self.action in ['set_password']:
+            return ChangePasswordSerializer
         if self.action in ['list', 'me', 'retrieve']:
-            return UserSerializer
-        if self.action in ['subcribe']:
             return UserSerializer
         if self.action in ['create']:
             return UserSignupSerializer
+        else:
+            return UserSerializer
 
     @action(
         detail=False,
