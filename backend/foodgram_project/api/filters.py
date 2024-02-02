@@ -19,17 +19,15 @@ class IngredientFilter(django_filters.FilterSet):
         model = Ingredient
         fields = ('name', )
 
-
+# https://stackoverflow.com/questions/47994336/django-filter-boolean-fields
+# https://www.yourtodo.ru/posts/djangofilters-i-django-rest-framework/
+# https://yandex.ru/search/?text=python+фильтрация+постов+по+добавленному+в+избранное&lr=2&clid=2323204&win=499
 class RecipeFilter(FilterSet):
     """Фильтр рецептов."""
-    author = filters.ModelChoiceFilter(
-        field_name='author__username',
-        queryset=User.objects.all()
-    )
     tags = filters.AllValuesMultipleFilter(
         field_name='tags__slug',
         )
 
     class Meta:
         model = Recipe
-        fields = ('tags', 'author')
+        fields = ('tags', 'author',)
