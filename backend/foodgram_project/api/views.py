@@ -17,6 +17,9 @@ from django.contrib.contenttypes.models import ContentType
 
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from django.http import HttpResponseForbidden
+from rest_framework.exceptions import PermissionDenied
+
 import reportlab
 import io
 from django.http import FileResponse
@@ -33,6 +36,7 @@ from api.permissions import (
     IsAuthorOrAdminOrReadOnly,
     IsAdminOrOther,
     ReadOnly,
+    IsAuthorOrReadOnly,
 )
 from recipes.models import (
     Ingredient,
@@ -106,6 +110,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """Ингредиенты."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    # filter_backends = [filters.SearchFilter,]
+    # filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
     http_method_names = ('get',)
 
@@ -123,10 +129,10 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'delete']:
-            return RecipeCreateSerializer
         if self.action in ['get']:
             return RecipeReadOnlySerializer
+        if self.action in ['create', 'update', 'destroy']:
+            return RecipeCreateSerializer
         else:
             return RecipeReadOnlySerializer
 
@@ -137,14 +143,13 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         url_path='favorite',
         url_name='favorite',
     )
-    def favorite(self, request, pk=None):
+    def favorite(self, request, pk):
         user = request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        serializer = FavoriteSerializer(user, recipe)
+        recipe = get_object_or_404(Recipe, pk=pk)
         if Favorite.objects.filter(user=user, recipe=recipe).exists():
-            return Response({'error': 'Рецепт уже добавлен в избранное'}, status=status.HTTP_400_BAD_REQUEST)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save(user=request.user)
+            return Response({'error': 'Вы уже добавили этот рецепт в избранное'}, status=status.HTTP_400_BAD_REQUEST)
+        Favorite.objects.create(user=user, recipe=recipe)
+        serializer = FavoriteSerializer(recipe, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     @action(
@@ -154,17 +159,31 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         url_path='shopping_cart',
         url_name='shopping_cart',
     )
-    def add_shopping_cart(self, request, pk):
-        user = self.request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-
+    def add_in_shopping_cart(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, pk=pk)
         if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
-            return Response({'error': 'Рецепт уже добавлен в список покупок'}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            ShoppingList.objects.create(user=user, recipe=recipe)
-            serializer = ShoppingListSerializer
-            serializer.save(user=request.user)
-            return Response(**serializer.data, status=status.HTTP_201_CREATED)
+            return Response({'error': 'Вы уже добавили этот рецепт в список покупок'}, status=status.HTTP_400_BAD_REQUEST)
+        ShoppingList.objects.create(user=user, recipe=recipe)
+        serializer = ShoppingListSerializer(recipe, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=True,
+        methods=['delete'],
+        permission_classes=[IsAuthorOrAdminOrReadOnly,],
+        url_path='shopping_cart',
+        url_name='shopping_cart',
+    )
+    def del_from_shopping_cart(self, request, pk):
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        recipe_in_cart = ShoppingList.objects.filter(user=user, recipe=recipe)
+        if recipe_in_cart.exists():
+            recipe_in_cart.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        if not recipe_in_cart.exists():
+            return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,
@@ -221,7 +240,7 @@ class CustomUserViewSet(
         url_name='set_password',
     )
     def set_password(self, request, pk=None):
-        user = request.user
+        user = self.request.user
         serializer = ChangePasswordSerializer(data=request.data)
         if serializer.is_valid():
             user.set_password(serializer.validated_data['new_password'])
@@ -229,6 +248,7 @@ class CustomUserViewSet(
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             return Response(status=status.HTTP_400_BAD_REQUEST)
+
 
     @action(
         detail=False,
@@ -247,11 +267,13 @@ class CustomUserViewSet(
         permission_classes=[IsAuthenticated,],
         url_name='subscribe',
     )
-    def subscribe(self, request, pk=None):
+    def subscribe(self, request, id):
         user = request.user
-        author = get_object_or_404(User, id=pk)
-
+        author = get_object_or_404(User, id=id)
+        if user == author:
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         if Follow.objects.filter(user=user, author=author).exists():
-            return Response({'error': 'Вы уже подписаны на этого пользователя'}, status=status.HTTP_STATUS_400_BAD_REQUEST)
-        serializer = FollowSerializer(author)
+            return Response({'error': 'Вы уже подписаны на этого пользователя'}, status=status.HTTP_400_BAD_REQUEST)
+        Follow.objects.create(user=user, author=author)
+        serializer = FollowSerializer(author, context={'request': request})
         return Response(serializer.data, status=status.HTTP_201_CREATED)
