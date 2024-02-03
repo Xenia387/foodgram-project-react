@@ -17,6 +17,11 @@ from django.contrib.contenttypes.models import ContentType
 
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+import reportlab
+import io
+from django.http import FileResponse
+from reportlab.pdfgen import canvas
+
 
 from api.pagination import (
     # RecipePagination,
@@ -47,7 +52,6 @@ from api.serializers import (
     RecipeReadOnlySerializer,
     UsersInSubscriptionSerializer,
     RecipeCreateSerializer,
-    # IngredientRecipeSerializer,
     FavoriteSerializer,
     FollowSerializer,
     ChangePasswordSerializer,
@@ -145,40 +149,51 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
     @action(
         detail=True,
-        methods=['delete'],
-        permission_classes=[IsAuthorOrAdminOrReadOnly,],
-        url_path='favorite',
-        url_name='favorite',
-    )
-    def unfavorite(self, request, pk=None):
-        user = self.request.user
-        recipe = get_object_or_404(Recipe, id=pk)
-        recipe_in_fav_for_del = Favorite.objects.filter(user=user, recipe=recipe)
-        if recipe_in_fav_for_del.exists():
-            recipe_in_fav_for_del.delete()
-            return Response({'error': 'Рецепт удалён из избранного'}, status=status.HTTP_204_NO_CONTENT)
-        if user.is_anonymous:
-            return Response({'error': 'Вы не авторизованы'}, status=status.HTTP_401_UNAUTHORIZED)
-        if not recipe_in_fav_for_del.exists():
-            return Response({'error': 'Вы не добовляли этот рецепт в избранное'}, status=status.HTTP_400_BAD_REQUEST)
-
-    @action(
-        detail=True,
         methods=['post'],
         permission_classes=[IsAuthenticated,],
         url_path='shopping_cart',
         url_name='shopping_cart',
     )
-    def add_in_shopping_cart(self, request, pk=None):
+    def add_shopping_cart(self, request, pk):
         user = self.request.user
         recipe = get_object_or_404(Recipe, id=pk)
+
         if ShoppingList.objects.filter(user=user, recipe=recipe).exists():
             return Response({'error': 'Рецепт уже добавлен в список покупок'}, status=status.HTTP_400_BAD_REQUEST)
         else:
             ShoppingList.objects.create(user=user, recipe=recipe)
-            serializer = FavoriteSerializer
+            serializer = ShoppingListSerializer
             serializer.save(user=request.user)
             return Response(**serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(
+        detail=False,
+        methods=['get'],
+        permission_classes=[IsAuthenticated,],
+        url_path='download_shopping_cart',
+        url_name='download_shopping_cart',
+    )
+    def download_shopping_cart(self, request):
+        user = self.request.user
+        if user.is_anonymous:
+            return Response({'detail': 'Учетные данные не были предоставлены'}, status=status.HTTP_401_UNAUTHORIZED)
+        ingredients_in_shoplist = IngredientRecipe.objects.filter(
+            recipe__shopping__user=user
+            ).values(
+                'ingredient__name',
+                'ingredient__measurement_unit'
+                ).annotate(amount=Sum('amount')).order_by()
+        shopping_list_str = 'Список покупок shopp:'
+        for shopplist in ingredients_in_shoplist:
+            shopping_list_str += f'- {shopplist["ingredient__name"]} - {shopplist["amount"]} {shopplist["ingredient__measurement_unit"]}'
+
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer)
+        p.drawString(60, 800, shopping_list_str)
+        p.showPage()
+        p.save()
+        buffer.seek(0)
+        return FileResponse(buffer, as_attachment=True, filename="shoppinglist.pdf")
 
 
 class CustomUserViewSet(

@@ -5,13 +5,9 @@ from django.urls import include, path, re_path
 
 from api.views import (
     IngredientViewSet,
-    # RecipeDetailViewSet,
     RecipeViewSet,
     TagViewSet,
     CustomUserViewSet,
-    # UserViewSet,
-    # UserReceiveTokenViewSet,
-    # UserReadOnlyViewSet,
 )
 
 router = DefaultRouter()

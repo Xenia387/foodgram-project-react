@@ -1,6 +1,5 @@
 import re
 import base64
-# import datetime as dt
 
 import webcolors
 from django.core.files.base import ContentFile
@@ -12,7 +11,6 @@ from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
 from djoser.serializers import UserCreateSerializer
 from django.contrib.auth.password_validation import validate_password
-# import django.contrib.auth.password_validation as validators
 from django.core import exceptions
 from rest_framework.relations import PrimaryKeyRelatedField
 from rest_framework import status
@@ -268,30 +266,30 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def get_ingredients(self, recipe):
+    def get_ingredients(self, obj):
         return IngredientForRecipeReadOnlySerializer(
-            IngredientRecipe.objects.filter(recipe=recipe).all(), many=True
+            IngredientRecipe.objects.filter(recipe=obj).all(), many=True
         ).data
 
-    def get_is_favorited(self, recipe):
+    def get_is_favorited(self, obj):
         request = self.context.get('request')
         if request.user.is_anonymous or not Favorite.objects.filter(
-            user=request.user, recipe=recipe
+            user=request.user, recipe=obj
         ).exists():
             return False
         if Favorite.objects.filter(
-            user=request.user, recipe=recipe
+            user=request.user, recipe=obj
         ).exists():
             return True
 
-    def get_is_in_shopping_cart(self, recipe):
+    def get_is_in_shopping_cart(self, obj):
         request = self.context.get('request')
         if request.user.is_anonymous or not ShoppingList.objects.filter(
-            user=request.user, recipe=recipe
+            user=request.user, recipe=obj
         ).exists():
             return False
         if ShoppingList.objects.filter(
-            user=request.user, recipe=recipe
+            user=request.user, recipe=obj
         ).exists():
             return True
 
@@ -361,18 +359,6 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         if not User.objects.filter(author=value).exists():
             raise serializers.ValidationError({'value': 'Вы не авторизаваны'}, status=status.HTTP_401_UNAUTHORIZED)
         return value
-
-    def add_ingredients_and_tags(self, tags, ingredients, recipe):
-        for tag in tags:
-            recipe.tags.add(tag)
-            recipe.save()
-        for ingredient in ingredients:
-            IngredientRecipe.objects.create(
-                ingredient_id=ingredient.get('id'),
-                amount=ingredient.get('amount'),
-                recipe=recipe
-            )
-        return recipe
 
     def create(self, validated_data):
         author = self.context.get('request').user
