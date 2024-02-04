@@ -1,12 +1,6 @@
-# from django.core import paginator # от наставника
 from rest_framework.pagination import PageNumberPagination
 
 NUMBER: int = 6
-
-
-# class RecipePagination(PageNumberPagination):
-#     """Пагинация для списка Рецептов."""
-#     page_size = NUMBER
 
 
 class CustomPagination(PageNumberPagination):
