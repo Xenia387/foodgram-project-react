@@ -5,11 +5,16 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Отладчик Python: Текущий файл",
-            "type": "debugpy",
+            "name": "foodgram_project",
+            "python": "C:/Users/Ксения/Desktop/final/foodgram-project-react/backend/venv/Scripts/python",
+            "type": "python",
             "request": "launch",
-            "program": "${file}",
-            "console": "integratedTerminal"
-        }
+            "program": "C:/Users/Ксения/Desktop/final/foodgram-project-react/backend/foodgram_project/manage.py",
+            "console": "internalConsole",
+            "args": ["runserver"],
+            "django": true,
+            "justMyCode": true,
+          }
+
     ]
 }

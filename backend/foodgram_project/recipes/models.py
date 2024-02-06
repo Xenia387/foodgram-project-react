@@ -1,9 +1,6 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
-# from colorfield.fields import ColorField
-# from django.core.exceptions import FieldDoesNotExist
 
-# from django.conf import settings
 from users.models import User
 
 FIELDS_RECIPE_MODELS_MAX_LENGTH: int = 200
@@ -17,13 +14,6 @@ class Tag(models.Model):
         verbose_name='Тег',
     )
     color = models.CharField(max_length=FIELD_COLOR_MAX_LENGTH)
-    # color = ColorField(
-    #     format='hex',
-    #     default='#FF0000',
-    #     max_length=7,
-    #     verbose_name='Цветовой HEX-код',
-    #     help_text='Цветовой HEX-код',
-    # )
     slug = models.SlugField(
         unique=True,
         max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
@@ -71,8 +61,6 @@ class Recipe(models.Model):
     ingredients = models.ManyToManyField(
         Ingredient,
         through='IngredientRecipe',
-        # through_fields=('recipe', 'ingredient'),
-        # related_name='recipes',
         verbose_name='Ингредиенты',
         help_text='Необходимые ингредиенты',
     )
@@ -133,7 +121,6 @@ class IngredientRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиентов',
-        # related_name='amount_ingredients',
         default=1,
         validators=[
             MinValueValidator(0),
@@ -188,7 +175,6 @@ class Favorite(models.Model):
     )
 
     class Meta:
-        # unique_together = ('user', 'recipe')
         verbose_name_plural = 'Избранное'
         constraints = [
             models.UniqueConstraint(
