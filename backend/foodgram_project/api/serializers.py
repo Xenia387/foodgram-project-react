@@ -273,14 +273,6 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
             return True
 
 
-class IngredientRecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор для модели связи между моделями Ингредиентов и Рецептов."""
-
-    class Meta:
-        model = IngredientRecipe
-        fields = ('id', 'name', 'measurement_unit', 'amount')
-
-
 class RecipeCreateSerializer(serializers.ModelSerializer):
     """Сериализатор создания Рецепта."""
     author = UserSerializer(read_only=True)
