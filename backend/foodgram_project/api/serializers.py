@@ -1,12 +1,12 @@
 import re
 import base64
+
 import webcolors
 from django.core.files.base import ContentFile
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
-
 from recipes.models import (Favorite,
                             Follow,
                             Ingredient,
@@ -199,7 +199,7 @@ class UserSignupSerializer(UserCreateSerializer):
             user = User.objects.get(email=value.get('email'))
             raise serializers.ValidationError(
                 {'value': 'Для этого email уже существует другой пользователь'}
-                )
+            )
         if User.objects.filter(username=value.get('username')).exists():
             user = User.objects.get(username=value.get('username'))
             if user.email != value.get('email'):
@@ -329,9 +329,9 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             list_ingredient.append(ingredient['id'])
             if len(list_ingredient) != len(set(list_ingredient)):
                 raise serializers.ValidationError(
-                        {'value':
-                         'Вы не можете добавить один ингредиент два раза'}
-                    )
+                    {'value':
+                     'Вы не можете добавить один ингредиент два раза'}
+                )
         return value
 
     def validate_tags(self, value):

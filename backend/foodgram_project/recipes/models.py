@@ -1,6 +1,5 @@
 from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
-
 from users.models import User
 
 FIELDS_RECIPE_MODELS_MAX_LENGTH: int = 200
@@ -133,9 +132,9 @@ class IngredientRecipe(models.Model):
 
     def __str__(self):
         return (
-           f'{self.ingredient.name} '
-           f'{self.amount} '
-           f'({self.ingredient.measurement_unit})'
+            f'{self.ingredient.name} '
+            f'{self.amount} '
+            f'({self.ingredient.measurement_unit})'
         )
 
 

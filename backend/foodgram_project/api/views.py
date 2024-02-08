@@ -82,12 +82,12 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         tags = request.data.get('tags', None)
         ingredients = request.data.get('ingredients', None)
         if not tags or not ingredients:
-            return Response(status=status.HTTP_400_BAD_REQUEST)        
+            return Response(status=status.HTTP_400_BAD_REQUEST)
         if recipe.author != user:
             return Response(status=status.HTTP_403_FORBIDDEN)
         serializer = self.get_serializer(
             recipe, data=request.data, partial=True
-            )
+        )
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
@@ -114,7 +114,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 recipe = Recipe.objects.get(id=pk)
                 recipe_in_fav = Favorite.objects.filter(
                     user=user, recipe=recipe
-                    )
+                )
                 if recipe_in_fav.exists():
                     return Response(
                         {'error': 'Вы уже добавили этот рецепт в избранное'},
@@ -123,10 +123,10 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 Favorite.objects.create(user=user, recipe=recipe)
                 serializer = self.get_serializer(
                     recipe, context={'request': request}
-                    )
+                )
                 return Response(
                     serializer.data, status=status.HTTP_201_CREATED
-                    )
+                )
             except Recipe.DoesNotExist:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -154,7 +154,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 recipe = Recipe.objects.get(id=pk)
                 recipe_in_cart = ShoppingList.objects.filter(
                     user=user, recipe=recipe
-                    )
+                )
                 if recipe_in_cart.exists():
                     return Response(
                         {'error':
@@ -164,10 +164,10 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 ShoppingList.objects.create(user=user, recipe=recipe)
                 serializer = self.get_serializer(
                     recipe, context={'request': request}
-                    )
+                )
                 return Response(
                     serializer.data, status=status.HTTP_201_CREATED
-                    )
+                )
             except Recipe.DoesNotExist:
                 return Response(status=status.HTTP_400_BAD_REQUEST)
 
@@ -175,7 +175,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
             recipe = get_object_or_404(Recipe, id=pk)
             recipe_in_cart = ShoppingList.objects.filter(
                 user=user, recipe=recipe
-                )
+            )
             if recipe_in_cart.exists():
                 recipe_in_cart.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -196,13 +196,13 @@ class RecipeViewSet(ListCreateDestroyViewSet):
             return Response(
                 {'detail': 'Вы не авторизаваны'},
                 status=status.HTTP_401_UNAUTHORIZED
-                )
+            )
         ingredients_in_shoplist = IngredientRecipe.objects.filter(
             recipe__shopping__user=user
-            ).values(
-                'ingredient__name',
-                'ingredient__measurement_unit'
-                ).annotate(amount=Sum('amount')).order_by()
+        ).values(
+            'ingredient__name',
+            'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount')).order_by()
         shopping_list_str = 'Список покупок:\n'
         for shopplist in ingredients_in_shoplist:
             shopping_list_str += (
@@ -241,7 +241,7 @@ class CustomUserViewSet(UserViewSet,
     def set_password(self, request):
         user = request.user
         serializer = self.get_serializer(
-            data=request.data,  context={'request': request}
+            data=request.data, context={'request': request}
         )
         if not request.user.check_password(
             request.data.get('current_password')
@@ -288,7 +288,7 @@ class CustomUserViewSet(UserViewSet,
             Follow.objects.create(user=user, author=author)
             serializer = self.get_serializer(
                 author, context={'request': request}
-                )
+            )
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         if request.method == 'DELETE':
             if author_in_subc.exists():
@@ -309,8 +309,8 @@ class CustomUserViewSet(UserViewSet,
         queryset = User.objects.filter(following__user=self.request.user)
         pages = self.paginate_queryset(queryset)
         serializer = self.get_serializer(
-                pages,
-                many=True,
-                context={'request': request}
-            )
+            pages,
+            many=True,
+            context={'request': request}
+        )
         return self.get_paginated_response(serializer.data)
