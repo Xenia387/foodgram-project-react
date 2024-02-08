@@ -240,7 +240,9 @@ class CustomUserViewSet(UserViewSet,
     )
     def set_password(self, request):
         user = request.user
-        serializer = self.get_serializer(data=request.data)
+        serializer = self.get_serializer(
+            data=request.data,  context={'request': request}
+        )
         if not request.user.check_password(
             request.data.get('current_password')
         ):
