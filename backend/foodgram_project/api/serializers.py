@@ -19,6 +19,7 @@ from users.models import (User,
                           FIELD_EMAIL_MAX_LENGTH,
                           FIELDS_USER_MAX_LENGTH,
                           )
+from api.pagination import NUMBER
 
 
 FIELD_RECIPE_NAME_MAX_LENGTH: int = 400
@@ -137,7 +138,9 @@ class UserSerializer(serializers.ModelSerializer):
         request = self.context.get('request')
         if (
             request.user.is_anonymous
-            or request.user == obj.following.filter
+            or request.user == User.objects.filter(
+                following__user=request.user
+            )
             or not Follow.objects.filter(user=request.user, author=obj
                                          ).exists()
         ):
@@ -383,6 +386,15 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return RecipeReadOnlySerializer(instance, context=context).data
 
 
+class RecipeInFavoriteShopListSubsc(serializers.ModelSerializer):
+    """Сериализатор вывода информации о Рецепте после
+    добавления в Избранное и Список покупок и на странице Подписок.
+    Только на чтение."""
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'image', 'cooking_time',)
+
+
 class UsersInSubscriptionSerializer(UserSerializer):
     """Сериализатор списка авторов, на которых подписан
     Пользователь и вывода информации об авторе после подписки.
@@ -408,7 +420,9 @@ class UsersInSubscriptionSerializer(UserSerializer):
         request = self.context.get('request')
         if (
             request.user.is_anonymous
-            or request.user == obj.following.filter
+            or request.user == User.objects.filter(
+                following__user=request.user
+            )
             or not Follow.objects.filter(user=request.user, author=obj
                                          ).exists()
         ):
@@ -420,34 +434,36 @@ class UsersInSubscriptionSerializer(UserSerializer):
             return True
 
     def get_recipes(self, obj):
-        pass
+        request = self.context.get('request')
+        context = {'request': request}
+        recipes_limit = request.GET.get('recipes_limit', NUMBER)
+        recipes_by_authors = Recipe.objects.filter(author=obj)
+        if recipes_limit:
+            recipes_by_authors = recipes_by_authors[:(int(recipes_limit))]
+        return RecipeInFavoriteShopListSubsc(
+            recipes_by_authors, many=True, context=context
+        ).data
 
     def get_recipes_count(self, obj):
-        pass
+        count_recipes = Recipe.objects.filter(author=obj)
+        return len(count_recipes)
 
 
 class FollowSerializer(serializers.ModelSerializer):
     """Сериализатор Подписки на Пользователя."""
     user = SlugRelatedField(
-        slug_field='username',
+        slug_field='user.username',
         queryset=User.objects.all(),
         default=CurrentUserDefault(),
     )
     author = SlugRelatedField(
-        slug_field='username',
+        slug_field='author.username',
         queryset=User.objects.all(),
     )
 
     class Meta:
         model = Follow
         fields = ('user', 'author')
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'author'),
-                message='Вы уже подписаны',
-            )
-        ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -455,71 +471,49 @@ class FollowSerializer(serializers.ModelSerializer):
         return UsersInSubscriptionSerializer(instance, context=context).data
 
 
-class RecipeInFavoriteAndShopList(serializers.ModelSerializer):
-    """Сериализатор вывода информации о Рецепте после
-    добавления в Избранное и Список покупок. Только на чтение."""
-    class Meta:
-        model = Recipe
-        fields = ('id', 'name', 'image', 'cooking_time',)
-
-
 class ShoppingListSerializer(serializers.ModelSerializer):
     """Сериализатор добавления Рецепта в Список покупок."""
 
     user = SlugRelatedField(
-        slug_field='id',
+        slug_field='user.id',
         queryset=User.objects.all(),
         default=CurrentUserDefault(),
     )
     recipe = SlugRelatedField(
-        slug_field='id',
+        slug_field='recipe.id',
         queryset=Recipe.objects.all(),
     )
 
     class Meta:
         model = ShoppingList
         fields = ('user', 'recipe')
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен в список покупок',
-            )
-        ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
-        return RecipeInFavoriteAndShopList(instance, context=context).data
+        return RecipeInFavoriteShopListSubsc(instance, context=context).data
 
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор добавления в Избранное."""
     user = SlugRelatedField(
-        slug_field='id',
+        slug_field='user.id',
         queryset=User.objects.all(),
         default=CurrentUserDefault(),
     )
     recipe = SlugRelatedField(
-        slug_field='id',
+        slug_field='recipe.id',
         queryset=Recipe.objects.all(),
     )
 
     class Meta:
         model = Favorite
         fields = ('user', 'recipe')
-        validators = [
-            serializers.UniqueTogetherValidator(
-                queryset=Follow.objects.all(),
-                fields=('user', 'recipe'),
-                message='Рецепт уже добавлен в избранное',
-            )
-        ]
 
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
-        return RecipeInFavoriteAndShopList(instance, context=context).data
+        return RecipeInFavoriteShopListSubsc(instance, context=context).data
 
 
 class ChangePasswordSerializer(serializers.ModelSerializer):

@@ -1,5 +1,7 @@
 from django.db.models import Sum
-from django.http import HttpResponse, FileResponse
+from django.http import (FileResponse,
+                        #  HttpResponse
+                         )
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import mixins, status, viewsets
@@ -7,14 +9,9 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
-import reportlab
+# import reportlab
 import io
 from reportlab.pdfgen import canvas
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
-from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 
 
 from api.filters import IngredientFilter, RecipeFilter
@@ -50,7 +47,7 @@ class ListCreateDestroyViewSet(mixins.CreateModelMixin,
                                mixins.ListModelMixin,
                                viewsets.GenericViewSet,
                                ):
-    pass
+    pagination_class = CustomPagination
 
 
 class IngredientViewSet(ReadOnlyModelViewSet):
@@ -58,7 +55,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     filterset_class = IngredientFilter
-    http_method_names = ('get',)
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -70,7 +66,6 @@ class TagViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ListCreateDestroyViewSet):
     """Рецепт."""
     queryset = Recipe.objects.all()
-    pagination_class = CustomPagination
     filterset_class = RecipeFilter
     permission_classes = [IsAuthenticatedOrReadOnly,]
 
@@ -219,13 +214,22 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 f'{shopplist["ingredient__measurement_unit"]}\n'
             )
 
+        buffer = io.BytesIO()
+        p = canvas.Canvas(buffer)
+        p.drawString(60, 800, shopping_list_str)
+        p.showPage()
+        p.save()
+        buffer.seek(0)
+        return FileResponse(
+            buffer, as_attachment=True, filename="shoppinglist.pdf"
+        )
+
 
 class CustomUserViewSet(UserViewSet,
-                        ListCreateDestroyViewSet
+                        ListCreateDestroyViewSet,
                         ):
     """Пользователи."""
     queryset = User.objects.all()
-    pagination_class = CustomPagination
     permission_classes = [IsAuthenticatedOrReadOnly,]
 
     def get_serializer_class(self):
@@ -285,18 +289,21 @@ class CustomUserViewSet(UserViewSet,
         author = get_object_or_404(User, id=id)
         author_in_subc = Follow.objects.filter(user=user, author=author)
         if request.method == 'POST':
-            if user == author:
-                return Response(status=status.HTTP_400_BAD_REQUEST)
-            if author_in_subc.exists():
-                return Response(
-                    {'error': 'Вы уже подписаны на этого пользователя'},
-                    status=status.HTTP_400_BAD_REQUEST
+            if user != author:
+                if author_in_subc.exists():
+                    return Response(
+                        {'error': 'Вы уже подписаны на этого пользователя'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
+                Follow.objects.create(user=user, author=author)
+                serializer = self.get_serializer(
+                    author, context={'request': request}
                 )
-            Follow.objects.create(user=user, author=author)
-            serializer = self.get_serializer(
-                author, context={'request': request}
-            )
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+                return Response(
+                    serializer.data, status=status.HTTP_201_CREATED
+                )
+            return Response(status=status.HTTP_400_BAD_REQUEST)
+
         if request.method == 'DELETE':
             if author_in_subc.exists():
                 author_in_subc.delete()
@@ -313,4 +320,11 @@ class CustomUserViewSet(UserViewSet,
         url_name='subscriptions',
     )
     def subscriptions(self, request):
-        pass
+        user = request.user
+        queryset = User.objects.filter(following__user=user)
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(
+                page, many=True, context={'request': request}
+            )
+            return self.get_paginated_response(serializer.data)
