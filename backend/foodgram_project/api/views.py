@@ -1,7 +1,5 @@
 from django.db.models import Sum
-from django.http import (FileResponse,
-                        #  HttpResponse
-                         )
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import mixins, status, viewsets
@@ -9,9 +7,13 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
-# import reportlab
+
 import io
 from reportlab.pdfgen import canvas
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 
 from api.filters import IngredientFilter, RecipeFilter
@@ -216,6 +218,9 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer)
+        # canvas = Canvas("shoppinglist.pdf", pagesize=A4)
+        # pdfmetrics.registerFont(TTFont('FreeSans', 'FreeSans.ttf'))
+        # p.setFont('FreeSans', 32)
         p.drawString(60, 800, shopping_list_str)
         p.showPage()
         p.save()
