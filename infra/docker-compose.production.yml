@@ -15,18 +15,17 @@ services:
       - pg_data:/var/lib/postgresql/data
 
   backend:
-    build: ../backend/foodgram_project
+    image: kseniaaa/foodgram_backend
     env_file: .env
     volumes:
       - static:/app/static_django/
       - media:/app/media/
     depends_on:
-      - foodgram_db 
+      - foodgram_db
 
 
   frontend:
-    build:
-      context: ../frontend
+    image: kseniaaa/foodgram_frontend
     env_file: .env  
     command: cp -r /app/build/. /static/
     volumes:
@@ -34,8 +33,9 @@ services:
 
 
   gateway:
-    image: nginx:1.19.3
-    build: ./
+    # image: nginx:1.19.3
+    # build: ./
+    image: kseniaaa/foodgram_gateway
     env_file: .env
     ports:
       - "9000:80"
