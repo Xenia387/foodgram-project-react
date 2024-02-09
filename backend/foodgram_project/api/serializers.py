@@ -420,16 +420,10 @@ class UsersInSubscriptionSerializer(UserSerializer):
             return True
 
     def get_recipes(self, obj):
-        request = self.context.get('request')
-        recipes_limit = request.GET.get('recipes_limit')
-        recipes = Recipe.objects.filter(author=obj)
-        if recipes_limit:
-            recipes = recipes[:(int(recipes_limit))]
-        return RecipeInFavoriteAndShopList(recipes, many=True).data
+        pass
 
     def get_recipes_count(self, obj):
-        count_recipes = Recipe.objects.filter(author=obj)
-        return len(count_recipes)
+        pass
 
 
 class FollowSerializer(serializers.ModelSerializer):

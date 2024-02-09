@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.http import HttpResponse
+from django.http import HttpResponse, FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import mixins, status, viewsets
@@ -7,6 +7,14 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
+import reportlab
+import io
+from reportlab.pdfgen import canvas
+from reportlab.pdfgen.canvas import Canvas
+from reportlab.lib.pagesizes import A4
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle
 
 
 from api.filters import IngredientFilter, RecipeFilter
@@ -210,7 +218,6 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 f'{shopplist["amount"]} '
                 f'{shopplist["ingredient__measurement_unit"]}\n'
             )
-        return HttpResponse(shopping_list_str, content_type='text/plain')
 
 
 class CustomUserViewSet(UserViewSet,
@@ -306,12 +313,4 @@ class CustomUserViewSet(UserViewSet,
         url_name='subscriptions',
     )
     def subscriptions(self, request):
-        user = request.user
-        queryset = User.objects.filter(following__user=user)
-        pages = self.paginate_queryset(queryset)
-        serializer = self.get_serializer(
-            pages,
-            many=True,
-            context={'request': request}
-        )
-        return self.get_paginated_response(serializer.data)
+        pass
