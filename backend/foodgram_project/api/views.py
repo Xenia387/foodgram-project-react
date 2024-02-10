@@ -100,7 +100,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 return Response(status=status.HTTP_404_NOT_FOUND)
             Recipe.objects.filter(author=user, id=pk).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        return Response(status=status.HTTP_403_FORBIDDEN)        
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
     @action(
         detail=True,
