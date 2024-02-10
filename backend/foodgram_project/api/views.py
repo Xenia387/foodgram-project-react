@@ -7,13 +7,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
-
 import io
 from reportlab.pdfgen import canvas
-from reportlab.pdfgen.canvas import Canvas
-from reportlab.lib.pagesizes import A4
-from reportlab.pdfbase import pdfmetrics
-from reportlab.pdfbase.ttfonts import TTFont
 
 
 from api.filters import IngredientFilter, RecipeFilter
@@ -86,26 +81,26 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         user = request.user
         tags = request.data.get('tags', None)
         ingredients = request.data.get('ingredients', None)
-        if not tags or not ingredients:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
-        if recipe.author != user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        serializer = self.get_serializer(
-            recipe, data=request.data, partial=True
-        )
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        if recipe.author == user:
+            if not tags or not ingredients:
+                return Response(status=status.HTTP_400_BAD_REQUEST)
+            serializer = self.get_serializer(
+                recipe, data=request.data, partial=True
+            )
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()
+                return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(status=status.HTTP_403_FORBIDDEN)
 
     def destroy(self, request, pk=None):
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
-        if recipe.author != user:
-            return Response(status=status.HTTP_403_FORBIDDEN)
-        if not Recipe.objects.filter(author=user, id=pk).exists():
-            return Response(status=status.HTTP_404_NOT_FOUND)
-        Recipe.objects.filter(author=user, id=pk).delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        if recipe.author == user:
+            if not Recipe.objects.filter(author=user, id=pk).exists():
+                return Response(status=status.HTTP_404_NOT_FOUND)
+            Recipe.objects.filter(author=user, id=pk).delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_403_FORBIDDEN)        
 
     @action(
         detail=True,
@@ -218,9 +213,6 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
         buffer = io.BytesIO()
         p = canvas.Canvas(buffer)
-        # canvas = Canvas("shoppinglist.pdf", pagesize=A4)
-        # pdfmetrics.registerFont(TTFont('FreeSans', 'FreeSans.ttf'))
-        # p.setFont('FreeSans', 32)
         p.drawString(60, 800, shopping_list_str)
         p.showPage()
         p.save()
@@ -333,3 +325,7 @@ class CustomUserViewSet(UserViewSet,
                 page, many=True, context={'request': request}
             )
             return self.get_paginated_response(serializer.data)
+        serializer = self.get_serializer(
+            queryset, many=True, context={'request': request}
+        )
+        return Response(serializer.data)

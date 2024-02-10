@@ -7,6 +7,7 @@ from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
+
 from recipes.models import (Favorite,
                             Follow,
                             Ingredient,
@@ -48,16 +49,12 @@ class IngredientSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Ingredient
-        fields = (
-            'id',
-            'name',
-            'measurement_unit',
-        )
+        fields = ('id', 'name', 'measurement_unit',)
 
 
 class IngredientForRecipeReadOnlySerializer(serializers.ModelSerializer):
-    """Сериализатор Ингредиентов для сериализатора RecipeReadOnlySerializer.
-    Только на чтение."""
+    """Сериализатор Ингредиентов из модели Ингредиент/Рецепт для сериализатора
+    RecipeReadOnlySerializer. Только на чтение."""
 
     id = serializers.PrimaryKeyRelatedField(
         source='ingredient',
@@ -90,7 +87,10 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = IngredientRecipe
-        fields = ('id', 'amount')
+        fields = (
+            'id',
+            'amount'
+        )
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -108,13 +108,7 @@ class UserAfterRegistSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = (
-            'email',
-            'id',
-            'username',
-            'first_name',
-            'last_name',
-        )
+        fields = ('email', 'id', 'username', 'first_name', 'last_name',)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -156,20 +150,23 @@ class UserSignupSerializer(UserCreateSerializer):
     """Сериализатор регистрации."""
     email = serializers.EmailField(
         max_length=FIELD_EMAIL_MAX_LENGTH,
-        required=True
+        required=True,
     )
     username = serializers.CharField(
         max_length=FIELDS_USER_MAX_LENGTH,
-        required=True
+        required=True,
     )
     first_name = serializers.CharField(
         max_length=FIELDS_USER_MAX_LENGTH,
+        required=True,
     )
     last_name = serializers.CharField(
         max_length=FIELDS_USER_MAX_LENGTH,
+        required=True,
     )
     password = serializers.CharField(
         max_length=FIELDS_USER_MAX_LENGTH,
+        required=True,
     )
 
     class Meta:
@@ -397,7 +394,7 @@ class RecipeInFavoriteShopListSubsc(serializers.ModelSerializer):
 
 class UsersInSubscriptionSerializer(UserSerializer):
     """Сериализатор списка авторов, на которых подписан
-    Пользователь и вывода информации об авторе после подписки.
+    Пользователь и вывода информации об авторе после Подписки.
     Только на чтение."""
     is_subscribed = serializers.SerializerMethodField(read_only=True)
     recipes = serializers.SerializerMethodField(read_only=True)
@@ -463,7 +460,10 @@ class FollowSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Follow
-        fields = ('user', 'author')
+        fields = (
+            'user',
+            'author'
+        )
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -486,7 +486,10 @@ class ShoppingListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ShoppingList
-        fields = ('user', 'recipe')
+        fields = (
+            'user',
+            'recipe'
+        )
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -508,7 +511,10 @@ class FavoriteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Favorite
-        fields = ('user', 'recipe')
+        fields = (
+            'user',
+            'recipe'
+        )
 
     def to_representation(self, instance):
         request = self.context.get('request')
@@ -523,4 +529,7 @@ class ChangePasswordSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('current_password', 'new_password')
+        fields = (
+            'current_password',
+            'new_password'
+        )
