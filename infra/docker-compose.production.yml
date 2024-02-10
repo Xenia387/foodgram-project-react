@@ -1,48 +1,45 @@
-# version: '3.3'
+version: '3.3'
 
-# volumes:
-#   pg_data:
-#   static:
-#   media:
-#   static_frontend:
+volumes:
+  pg_data:
+  static:
+  media:
+  static_frontend:
 
-# services:
+services:
 
-#   foodgram_db:
-#     image: postgres:13.13
-#     env_file: .env
-#     volumes:
-#       - pg_data:/var/lib/postgresql/data
+  foodgram_db:
+    image: postgres:13.13
+    env_file: .env
+    volumes:
+      - pg_data:/var/lib/postgresql/data
 
-#   backend:
-#     image: kseniaaa/foodgram_backend
-#     env_file: .env
-#     volumes:
-#       - static:/app/static_django/
-#       - media:/app/media/
-#     depends_on:
-#       - foodgram_db
+  backend:
+    image: kseniaaa/foodgram_backend
+    env_file: .env
+    volumes:
+      - static:/app/static_django/
+      - media:/app/media/
+    depends_on:
+      - foodgram_db 
 
+  frontend:
+    image: kseniaaa/foodgram_frontend
+    env_file: .env
+    command: cp -r /app/build/. /static/
+    volumes:
+      - ../frontend/:/app/result_build/
 
-#   frontend:
-#     image: kseniaaa/foodgram_frontend
-#     env_file: .env  
-#     command: cp -r /app/build/. /static/
-#     volumes:
-#       - ../frontend/:/app/result_build/
-
-
-#   gateway:
-#     # image: nginx:1.19.3
-#     # build: ./
-#     image: kseniaaa/foodgram_gateway
-#     env_file: .env
-#     ports:
-#       - "9000:80"
-#     volumes:
-#       - static:/static_django/
-#       - media:/media/
-#       - static_frontend:/static_frontend/
-#       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-#       - ../frontend/build:/usr/share/nginx/html/
-#       - ../docs/:/usr/share/nginx/html/api/docs/
+  nginx:
+    # image: nginx:1.19.3
+    image: kseniaaa/foodgram_gateway
+    env_file: .env
+    ports:
+      - 9000:80
+    volumes:
+      - static:/static_django/
+      - media:/media/
+      - static_frontend:/static_frontend/
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - ../frontend/build:/usr/share/nginx/html/
+      - ../docs/:/usr/share/nginx/html/api/docs/
