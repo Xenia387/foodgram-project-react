@@ -2,7 +2,11 @@ from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework import mixins, status, viewsets
+from rest_framework import (
+    mixins,
+    # status,
+    viewsets
+)
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -63,7 +67,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     """Рецепт."""
     queryset = Recipe.objects.all()
     filterset_class = RecipeFilter
-    permission_classes = [IsAuthenticatedOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
 
     def get_serializer_class(self):
         if self.action in ['create', 'partial_update']:
@@ -226,7 +230,7 @@ class CustomUserViewSet(UserViewSet,
                         ):
     """Пользователи."""
     queryset = User.objects.all()
-    permission_classes = [IsAuthenticatedOrReadOnly,]
+    permission_classes = [IsAuthenticatedOrReadOnly, ]
 
     def get_serializer_class(self):
         if self.action in ['create']:
@@ -267,7 +271,7 @@ class CustomUserViewSet(UserViewSet,
     @action(
         detail=False,
         methods=['get'],
-        permission_classes=[AuthorOnly,],
+        permission_classes=[AuthorOnly, ],
         url_name='me',
     )
     def me(self, request):
