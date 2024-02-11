@@ -20,6 +20,7 @@ from users.models import (User,
                           FIELDS_USER_MAX_LENGTH,
                           )
 from api.pagination import NUMBER
+from foodgram_project.settings import MIN_MUNBER, MAX_NUMBER
 
 FIELD_RECIPE_NAME_MAX_LENGTH: int = 400
 
@@ -81,7 +82,9 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
     id = serializers.PrimaryKeyRelatedField(
         queryset=Ingredient.objects.all()
     )
-    amount = serializers.IntegerField(write_only=True, min_value=1)
+    amount = serializers.IntegerField(
+        write_only=True, max_value=MAX_NUMBER, min_value=MIN_MUNBER
+    )
 
     class Meta:
         model = IngredientRecipe
@@ -127,21 +130,13 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
+        user = self.context['request'].user
         if (
-            request.user.is_anonymous
-            or request.user == User.objects.filter(
-                following__user=request.user
-            )
-            or not Follow.objects.filter(user=request.user, author=obj
-                                         ).exists()
-        ):
-            return False
-        if (
-            request.user.is_authenticated
-            and Follow.objects.filter(user=request.user, author=obj).exists()
+            user.is_authenticated
+            and Follow.objects.filter(user=user, author=obj).exists()
         ):
             return True
+        return False
 
 
 class UserSignupSerializer(UserCreateSerializer):
@@ -238,37 +233,27 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         return IngredientForRecipeReadOnlySerializer(
-            IngredientRecipe.objects.filter(recipe=obj).all(), many=True
+            obj.ingredients.all(), many=True
         ).data
 
     def get_is_favorited(self, obj):
-        request = self.context.get('request')
+        user = self.context['request'].user
         if (
-            request.user.is_anonymous
-            or not Favorite.objects.filter(user=request.user, recipe=obj
-                                           ).exists()
-        ):
-            return False
-        if (
-            request.user.is_authenticated
-            and Favorite.objects.filter(user=request.user, recipe=obj).exists()
+            user.is_authenticated
+            and Favorite.objects.filter(user=user, recipe=obj).exists()
         ):
             return True
+        return False
 
     def get_is_in_shopping_cart(self, obj):
-        request = self.context.get('request')
+        user = self.context['request'].user
         if (
-            request.user.is_anonymous
-            or not ShoppingList.objects.filter(user=request.user, recipe=obj
-                                               ).exists()
-        ):
-            return False
-        if (
-            request.user.is_authenticated
-            and ShoppingList.objects.filter(user=request.user, recipe=obj
+            user.is_authenticated
+            and ShoppingList.objects.filter(user=user, recipe=obj
                                             ).exists()
         ):
             return True
+        return False
 
 
 class RecipeCreateSerializer(serializers.ModelSerializer):
@@ -280,7 +265,10 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
     )
     image = Base64ImageField()
-    cooking_time = serializers.IntegerField()
+    name = serializers.CharField(max_lenght=FIELD_RECIPE_NAME_MAX_LENGTH)
+    cooking_time = serializers.IntegerField(
+        max_value=MAX_NUMBER, min_value=MIN_MUNBER
+    )
 
     class Meta:
         model = Recipe
@@ -294,23 +282,8 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             'cooking_time',
         )
 
-    def validate_cooking_time(self, value):
-        if value == 0:
-            raise serializers.ValidationError(
-                {'value': 'Время приготовления не может быть меньше 1 минуты'}
-            )
-        return value
-
-    def validate_name(self, value):
-        if len(value) >= FIELD_RECIPE_NAME_MAX_LENGTH:
-            raise serializers.ValidationError(
-                {'value':
-                 'Название в рецепте должно быть не длинее 400 символов'}
-            )
-        return value
-
     def validate_ingredients(self, value):
-        if len(value) == 0:
+        if value is None:
             raise serializers.ValidationError(
                 {'value': 'Рецепт должен содержать хотя бы один ингредиент'}
             )
@@ -325,7 +298,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         return value
 
     def validate_tags(self, value):
-        if len(value) == 0:
+        if value is None:
             raise serializers.ValidationError(
                 {'value': 'Рецепт должен содержать хотя бы один тег'}
             )
@@ -335,13 +308,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
         return value
 
-    def create(self, validated_data):
-        author = self.context.get('request').user
-        ingredients = validated_data.pop('ingredients')
-        tags = validated_data.pop('tags')
-        recipe = Recipe.objects.create(author=author, **validated_data)
-        recipe.tags.set(tags)
-
+    def create_ingredients(self, ingredients, recipe):
         for ingredient in ingredients:
             create_ingredient = ingredient.get('id')
             create_amount = ingredient.get('amount')
@@ -350,6 +317,14 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
                 amount=create_amount,
                 recipe=recipe
             )
+
+    def create(self, validated_data):
+        author = self.context.get('request').user
+        ingredients = validated_data.pop('ingredients')
+        tags = validated_data.pop('tags')
+        recipe = Recipe.objects.create(author=author, **validated_data)
+        recipe.tags.set(tags)
+        self.create_ingredients(ingredients, recipe)
         return recipe
 
     def update(self, instance, validated_data):
@@ -364,14 +339,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         instance.ingredients.clear()
         instance.tags.clear()
         instance.tags.set(tags)
-        for ingredient in ingredients:
-            create_ingredient = ingredient.get('id')
-            create_amount = ingredient.get('amount')
-            IngredientRecipe.objects.create(
-                ingredient=create_ingredient,
-                amount=create_amount,
-                recipe=instance
-            )
+        self.create_ingredients(ingredients, instance)
         instance.save()
         return instance
 
@@ -412,27 +380,19 @@ class UsersInSubscriptionSerializer(UserSerializer):
         )
 
     def get_is_subscribed(self, obj):
-        request = self.context.get('request')
+        user = self.context['request'].user
         if (
-            request.user.is_anonymous
-            or request.user == User.objects.filter(
-                following__user=request.user
-            )
-            or not Follow.objects.filter(user=request.user, author=obj
-                                         ).exists()
-        ):
-            return False
-        if (
-            request.user.is_authenticated
-            and Follow.objects.filter(user=request.user, author=obj).exists()
+            user.is_authenticated
+            and Follow.objects.filter(user=user, author=obj).exists()
         ):
             return True
+        return False
 
     def get_recipes(self, obj):
         request = self.context.get('request')
         context = {'request': request}
         recipes_limit = request.GET.get('recipes_limit', NUMBER)
-        recipes_by_authors = Recipe.objects.filter(author=obj)
+        recipes_by_authors = obj.recipe.all()
         if recipes_limit:
             recipes_by_authors = recipes_by_authors[:(int(recipes_limit))]
         return RecipeInFavoriteShopListSubsc(
@@ -440,8 +400,8 @@ class UsersInSubscriptionSerializer(UserSerializer):
         ).data
 
     def get_recipes_count(self, obj):
-        count_recipes = Recipe.objects.filter(author=obj)
-        return len(count_recipes)
+        count_recipes = obj.recipe.all()
+        return count_recipes.count()
 
 
 class FollowSerializer(serializers.ModelSerializer):

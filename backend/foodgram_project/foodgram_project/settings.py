@@ -162,3 +162,6 @@ DJOSER = {
         'token_destroy': ['rest_framework.permissions.IsAuthenticated'],
     },
 }
+
+MIN_MUNBER: int = 1
+MAX_NUMBER: int = 3200

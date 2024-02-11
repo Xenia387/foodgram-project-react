@@ -2,11 +2,7 @@ from django.db.models import Sum
 from django.http import FileResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
-from rest_framework import (
-    mixins,
-    # status,
-    viewsets
-)
+from rest_framework import mixins, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.response import Response
@@ -14,6 +10,7 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 import io
 from reportlab.pdfgen import canvas
 from rest_framework import status
+
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import AuthorOnly

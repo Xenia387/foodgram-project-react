@@ -1,6 +1,9 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+
 from users.models import User
+from foodgram_project.settings import MIN_MUNBER, MAX_NUMBER
+
 FIELDS_RECIPE_MODELS_MAX_LENGTH: int = 200
 FIELD_COLOR_MAX_LENGTH: int = 16
 
@@ -36,7 +39,14 @@ class Ingredient(models.Model):
         max_length=FIELDS_RECIPE_MODELS_MAX_LENGTH,
         verbose_name='Единица измерения',
     )
-    amount = models.IntegerField()
+    amount = models.PositiveSmallIntegerField(
+        verbose_name='Количество ингредиентов',
+        default=MIN_MUNBER,
+        validators=[
+            MinValueValidator(MIN_MUNBER),
+            MaxValueValidator(MAX_NUMBER)
+        ],
+    )
 
     class Meta:
         ordering = ('name',)
@@ -84,9 +94,13 @@ class Recipe(models.Model):
         verbose_name='Описание',
         help_text='Способ приготовления',
     )
-    cooking_time = models.IntegerField(
+    cooking_time = models.PositiveSmallIntegerField(
         verbose_name='Время приготовления в минутах',
-        null=False,
+        default=MIN_MUNBER,
+        validators=[
+            MinValueValidator(MIN_MUNBER),
+            MaxValueValidator(MAX_NUMBER)
+        ],
     )
     created = models.DateTimeField(
         'created',
@@ -119,7 +133,7 @@ class IngredientRecipe(models.Model):
     )
     amount = models.PositiveSmallIntegerField(
         verbose_name='Количество ингредиентов',
-        default=1,
+        default=MIN_MUNBER,
         validators=[
             MinValueValidator(0),
             MaxValueValidator(1000)
