@@ -1,7 +1,6 @@
-from django.db import models
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
 from users.models import User
-
 FIELDS_RECIPE_MODELS_MAX_LENGTH: int = 200
 FIELD_COLOR_MAX_LENGTH: int = 16
 

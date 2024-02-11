@@ -7,7 +7,6 @@ from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
-
 from recipes.models import (Favorite,
                             Follow,
                             Ingredient,
@@ -21,7 +20,6 @@ from users.models import (User,
                           FIELDS_USER_MAX_LENGTH,
                           )
 from api.pagination import NUMBER
-
 
 FIELD_RECIPE_NAME_MAX_LENGTH: int = 400
 

@@ -10,8 +10,6 @@ from rest_framework.viewsets import ReadOnlyModelViewSet
 import io
 from reportlab.pdfgen import canvas
 from rest_framework import status
-
-
 from api.filters import IngredientFilter, RecipeFilter
 from api.pagination import CustomPagination
 from api.permissions import AuthorOnly
