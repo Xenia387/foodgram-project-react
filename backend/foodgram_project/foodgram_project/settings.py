@@ -163,5 +163,5 @@ DJOSER = {
     },
 }
 
-MIN_MUNBER: int = 1
-MAX_NUMBER: int = 3200
+MIN_VALUE: int = 1
+MAX_VALUE: int = 32000

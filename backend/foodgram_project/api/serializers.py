@@ -7,6 +7,7 @@ from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
+
 from recipes.models import (Favorite,
                             Follow,
                             Ingredient,
@@ -20,7 +21,7 @@ from users.models import (User,
                           FIELDS_USER_MAX_LENGTH,
                           )
 from api.pagination import NUMBER
-from foodgram_project.settings import MIN_MUNBER, MAX_NUMBER
+from foodgram_project.settings import MIN_VALUE, MAX_VALUE
 
 FIELD_RECIPE_NAME_MAX_LENGTH: int = 400
 
@@ -83,7 +84,7 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all()
     )
     amount = serializers.IntegerField(
-        write_only=True, max_value=MAX_NUMBER, min_value=MIN_MUNBER
+        write_only=True, max_value=MAX_VALUE, min_value=MIN_VALUE
     )
 
     class Meta:
@@ -257,7 +258,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
     image = Base64ImageField()
     name = serializers.CharField(max_length=FIELD_RECIPE_NAME_MAX_LENGTH)
     cooking_time = serializers.IntegerField(
-        max_value=MAX_NUMBER, min_value=MIN_MUNBER
+        max_value=MAX_VALUE, min_value=MIN_VALUE
     )
 
     class Meta:

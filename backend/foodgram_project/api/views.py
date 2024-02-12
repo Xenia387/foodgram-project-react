@@ -112,9 +112,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         if request.method == 'POST':
             try:
                 recipe = Recipe.objects.get(id=pk)
-                recipe_in_fav = Favorite.objects.filter(
-                    user=user, recipe=recipe
-                )
+                recipe_in_fav = user.favorites.filter(recipe=recipe)
                 if recipe_in_fav.exists():
                     return Response(
                         {'error': 'Вы уже добавили этот рецепт в избранное'},
@@ -132,7 +130,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
         if request.method == 'DELETE':
             recipe = get_object_or_404(Recipe, id=pk)
-            recipe_in_fav = Favorite.objects.filter(user=user, recipe=recipe)
+            recipe_in_fav = user.favorites.filter(recipe=recipe)
             if recipe_in_fav.exists():
                 recipe_in_fav.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -152,9 +150,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         if request.method == 'POST':
             try:
                 recipe = Recipe.objects.get(id=pk)
-                recipe_in_cart = ShoppingList.objects.filter(
-                    user=user, recipe=recipe
-                )
+                recipe_in_cart = user.shoppings.filter(recipe=recipe)
                 if recipe_in_cart.exists():
                     return Response(
                         {'error':
@@ -173,9 +169,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
         if request.method == 'DELETE':
             recipe = get_object_or_404(Recipe, id=pk)
-            recipe_in_cart = ShoppingList.objects.filter(
-                user=user, recipe=recipe
-            )
+            recipe_in_cart = user.shoppings.filter(recipe=recipe)
             if recipe_in_cart.exists():
                 recipe_in_cart.delete()
                 return Response(status=status.HTTP_204_NO_CONTENT)
@@ -220,6 +214,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         return FileResponse(
             buffer, as_attachment=True, filename="shoppinglist.pdf"
         )
+        # return HttpResponse(shopping_list, content_type='text/plain')
 
 
 class CustomUserViewSet(UserViewSet,
@@ -284,7 +279,7 @@ class CustomUserViewSet(UserViewSet,
     def subscribe(self, request, id=None):
         user = request.user
         author = get_object_or_404(User, id=id)
-        author_in_subc = Follow.objects.filter(user=user, author=author)
+        author_in_subc = user.follower.filter(author=author)
         if request.method == 'POST':
             if user != author:
                 if author_in_subc.exists():
