@@ -131,7 +131,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if Follow.objects.filter(user=user, author=obj).exists():
+        if user.follower.filter(author=obj).exists():
             return True
         return False
 
@@ -371,7 +371,7 @@ class UsersInSubscriptionSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if Follow.objects.filter(user=user, author=obj).exists():
+        if user.follower.filter(author=obj).exists():
             return True
         return False
 
