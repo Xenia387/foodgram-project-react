@@ -109,8 +109,8 @@ jobs:
       - name: Copy docker-compose.yml via ssh
         uses: appleboy/scp-action@master
         with:
-          host: ${f secrets.HOST }}
-          username: Stf secrets.USER }}
+          host: ${{ secrets.HOST }}
+          username: S{{ secrets.USER }}
           key: S{{ secrets.SSH_KEY }}
           passphrase: ${{ secrets.SSH_PASSPHRASE }}
           source: "docker-compose.production.yml"
