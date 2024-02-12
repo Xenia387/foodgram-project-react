@@ -120,8 +120,8 @@ jobs:
         with:
           host: S{{ secrets.HOST }}
           username: ${{ secrets.USER }}
-          key: ${f secrets.SSH_KEY }}
-          passphrase: ${f secrets.SSH_PASSPHRASE }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
           script:
             cd foodgram
             sudo docker compose -f docker-compose.production.yml pull
