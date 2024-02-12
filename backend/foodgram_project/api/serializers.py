@@ -131,10 +131,7 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if (
-            user.is_authenticated
-            and Follow.objects.filter(user=user, author=obj).exists()
-        ):
+        if Follow.objects.filter(user=user, author=obj).exists():
             return True
         return False
 
@@ -188,17 +185,17 @@ class UserSignupSerializer(UserCreateSerializer):
         return value
 
     def validate(self, value):
-        user = User.objects.fisrt():
-        if user.objects.get(email=value.get('email'))
-        raise serializers.ValidationError(
-            {'value': 'Для этого email уже существует другой пользователь'}
-        )
-        # if User.objects.filter(username=value.get('username')).exists():
-        #     user = User.objects.get(username=value.get('username'))
-        #     if user.email != value.get('email'):
-        #         raise serializers.ValidationError(
-        #             {'value': 'Для этого пользователя указан другой email'}
-        #         )
+        if User.objects.filter(email=value.get('email')).first():
+            user = User.objects.get(email=value.get('email'))
+            raise serializers.ValidationError(
+                {'value': 'Для этого email уже существует другой пользователь'}
+            )
+        if User.objects.filter(username=value.get('username')).first():
+            user = User.objects.get(username=value.get('username'))
+            if user.email != value.get('email'):
+                raise serializers.ValidationError(
+                    {'value': 'Для этого пользователя указан другой email'}
+                )
         return value
 
     def to_representation(self, instance):
@@ -238,20 +235,13 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, obj):
         user = self.context['request'].user
-        if (
-            user.is_authenticated
-            and Favorite.objects.filter(user=user, recipe=obj).exists()
-        ):
+        if user.favorites.filter(recipe=obj).exists():
             return True
         return False
 
     def get_is_in_shopping_cart(self, obj):
         user = self.context['request'].user
-        if (
-            user.is_authenticated
-            and ShoppingList.objects.filter(user=user, recipe=obj
-                                            ).exists()
-        ):
+        if user.shoppings.filter(recipe=obj).exists():
             return True
         return False
 
@@ -381,10 +371,7 @@ class UsersInSubscriptionSerializer(UserSerializer):
 
     def get_is_subscribed(self, obj):
         user = self.context['request'].user
-        if (
-            user.is_authenticated
-            and Follow.objects.filter(user=user, author=obj).exists()
-        ):
+        if Follow.objects.filter(user=user, author=obj).exists():
             return True
         return False
 
