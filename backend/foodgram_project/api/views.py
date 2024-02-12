@@ -1,5 +1,5 @@
 from django.db.models import Sum
-from django.http import FileResponse
+from django.http import FileResponse, HttpResponse
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import mixins, viewsets
@@ -204,17 +204,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
                 f'{shopplist["amount"]} '
                 f'{shopplist["ingredient__measurement_unit"]}\n'
             )
-
-        buffer = io.BytesIO()
-        p = canvas.Canvas(buffer)
-        p.drawString(60, 800, shopping_list_str)
-        p.showPage()
-        p.save()
-        buffer.seek(0)
-        return FileResponse(
-            buffer, as_attachment=True, filename="shoppinglist.pdf"
-        )
-        # return HttpResponse(shopping_list, content_type='text/plain')
+        return HttpResponse(shopping_list_str, content_type='text/plain')
 
 
 class CustomUserViewSet(UserViewSet,
