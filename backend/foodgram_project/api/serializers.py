@@ -188,17 +188,17 @@ class UserSignupSerializer(UserCreateSerializer):
         return value
 
     def validate(self, value):
-        if User.objects.filter(email=value.get('email')).exists():
-            user = User.objects.get(email=value.get('email'))
-            raise serializers.ValidationError(
-                {'value': 'Для этого email уже существует другой пользователь'}
-            )
-        if User.objects.filter(username=value.get('username')).exists():
-            user = User.objects.get(username=value.get('username'))
-            if user.email != value.get('email'):
-                raise serializers.ValidationError(
-                    {'value': 'Для этого пользователя указан другой email'}
-                )
+        user = User.objects.fisrt():
+        if user.objects.get(email=value.get('email'))
+        raise serializers.ValidationError(
+            {'value': 'Для этого email уже существует другой пользователь'}
+        )
+        # if User.objects.filter(username=value.get('username')).exists():
+        #     user = User.objects.get(username=value.get('username'))
+        #     if user.email != value.get('email'):
+        #         raise serializers.ValidationError(
+        #             {'value': 'Для этого пользователя указан другой email'}
+        #         )
         return value
 
     def to_representation(self, instance):
@@ -233,7 +233,7 @@ class RecipeReadOnlySerializer(serializers.ModelSerializer):
 
     def get_ingredients(self, obj):
         return IngredientForRecipeReadOnlySerializer(
-            obj.ingredients.all(), many=True
+            obj.ingredient.all(), many=True
         ).data
 
     def get_is_favorited(self, obj):
@@ -265,7 +265,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
     )
     image = Base64ImageField()
-    name = serializers.CharField(max_lenght=FIELD_RECIPE_NAME_MAX_LENGTH)
+    name = serializers.CharField(max_length=FIELD_RECIPE_NAME_MAX_LENGTH)
     cooking_time = serializers.IntegerField(
         max_value=MAX_NUMBER, min_value=MIN_MUNBER
     )
@@ -319,7 +319,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             )
 
     def create(self, validated_data):
-        author = self.context.get('request').user
+        author = self.context['request'].user
         ingredients = validated_data.pop('ingredients')
         tags = validated_data.pop('tags')
         recipe = Recipe.objects.create(author=author, **validated_data)
