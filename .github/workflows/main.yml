@@ -97,54 +97,88 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
 
-  deploy:
-
-    runs-on: ubuntu-latest
-
-    needs:
-      - build_backend_and_push_to_docker_hub
-      - build_frontend_and_push_to_docker_hub
-
+  depLoy:
+    runs -on: ubuntu-latest needs:
+      build_backend_and_push_to_docker_hub
+      build_frontend_and_push_to_docker_hub
+    if: github.ref == 'refs/heads/master'
     steps:
-
+    - name: Checkout repo
+      uses: actions/checkout@v3
     - name: Copy docker-compose.yml via ssh
       uses: appleboy/scp-action@master
       with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.SSH_KEY }}
+        host: ${f secrets.HOST }}
+        username: Stf secrets.USER }}
+        key: S{{ secrets.SSH_KEY }}
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         source: "docker-compose.production.yml"
-        target: "foodgram_project"
+        target: "foodaram"
+      - name: Executing remote ssh commands to deploy
+        uses: appleboy/ssh-action@master
+        with:
+          host: S{{ secrets.HOST }}
+          username: ${{ secrets.USER }}
+          key: ${f secrets.SSH_KEY }}
+          passphrase: ${f secrets.SSH_PASSPHRASE }}
+          script:
+            cd foodgram
+            sudo docker compose -f docker-compose.production.yml pull
+            sudo docker compose -f docker-compose.production.yml down
+            sudo docker compose -f docker-compose.production.yml up -d
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py migrate
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py import_csv
+            sudo docker compose -f docker-compose.production.yml exec backend python manage.py collectstatic
+            sudo docker compose -f docker-compose.production.yml exec backend cp -r /app/static_django/. /static/
 
-    - name: Executing remote ssh commands to deploy
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USER }}
-        key: ${{ secrets.SSH_KEY }}
-        passphrase: ${{ secrets.SSH_PASSPHRASE }}
-        script: |
-          cd foodgram
-          sudo docker compose -f docker-compose.production.yml pull
-          sudo docker compose -f docker-compose.production.yml down
-          sudo docker compose -f docker-compose.production.yml up -d
+  # deploy:
+
+  #   runs-on: ubuntu-latest
+
+  #   needs:
+  #     - build_backend_and_push_to_docker_hub
+  #     - build_frontend_and_push_to_docker_hub
+
+  #   steps:
+
+  #   - name: Copy docker-compose.yml via ssh
+  #     uses: appleboy/scp-action@master
+  #     with:
+  #       host: ${{ secrets.HOST }}
+  #       username: ${{ secrets.USER }}
+  #       key: ${{ secrets.SSH_KEY }}
+  #       passphrase: ${{ secrets.SSH_PASSPHRASE }}
+  #       source: "docker-compose.production.yml"
+  #       target: "foodgram"
+
+  #   - name: Executing remote ssh commands to deploy
+  #     uses: appleboy/ssh-action@master
+  #     with:
+  #       host: ${{ secrets.HOST }}
+  #       username: ${{ secrets.USER }}
+  #       key: ${{ secrets.SSH_KEY }}
+  #       passphrase: ${{ secrets.SSH_PASSPHRASE }}
+  #       script: |
+  #         cd foodgram
+  #         sudo docker compose -f docker-compose.production.yml pull
+  #         sudo docker compose -f docker-compose.production.yml down
+  #         sudo docker compose -f docker-compose.production.yml up -d
 
 
-          # sudo docker-compose stop
-          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
-          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
-          # rm .env
-          # touch .env
-          # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-          # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-          # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-          # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-          # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-          # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-          # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
-          # echo DEBUG=${{ secrets.DEBUG }} >> .env
-          # sudo docker-compose up -d
+  #         # sudo docker-compose stop
+  #         # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
+  #         # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+  #         # rm .env
+  #         # touch .env
+  #         # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+  #         # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+  #         # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+  #         # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+  #         # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+  #         # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+  #         # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
+  #         # echo DEBUG=${{ secrets.DEBUG }} >> .env
+  #         # sudo docker-compose up -d
 
   send_message:
 
