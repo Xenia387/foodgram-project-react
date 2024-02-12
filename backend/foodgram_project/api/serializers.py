@@ -278,14 +278,13 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(
                 {'value': 'Рецепт должен содержать хотя бы один ингредиент'}
             )
-        list_ingredient = []
+        ingr = set()
         for ingredient in value:
-            list_ingredient.append(ingredient['id'])
-            if len(list_ingredient) != len(set(list_ingredient)):
+            if ingredient['id'] in ingr:
                 raise serializers.ValidationError(
-                    {'value':
-                     'Вы не можете добавить один ингредиент два раза'}
+                    'Вы не можете добавить один ингредиент два раза'
                 )
+            ingr.add(ingredient['id'])
         return value
 
     def validate_tags(self, value):
