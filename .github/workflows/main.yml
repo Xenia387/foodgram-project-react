@@ -116,28 +116,27 @@ jobs:
         passphrase: ${{ secrets.SSH_PASSPHRASE }}
         source: "docker-compose.production.yml"
         target: "foodgram"
+        script: |
+          cd foodgram
+          sudo docker compose -f docker-compose.production.yml pull
+          sudo docker compose -f docker-compose.production.yml down
+          sudo docker compose -f docker-compose.production.yml up -d
 
-          script: |
-            cd foodgram
-            sudo docker compose -f docker-compose.production.yml pull
-            sudo docker compose -f docker-compose.production.yml down
-            sudo docker compose -f docker-compose.production.yml up -d
 
-
-            # sudo docker-compose stop
-            # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
-            # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
-            # rm .env
-            # touch .env
-            # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
-            # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
-            # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
-            # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
-            # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
-            # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
-            # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
-            # echo DEBUG=${{ secrets.DEBUG }} >> .env
-            # sudo docker-compose up -d
+          # sudo docker-compose stop
+          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_backend:latest
+          # sudo docker pull ${{ secrets.DOCKER_USERNAME }}/foodgram_frontend:latest
+          # rm .env
+          # touch .env
+          # echo DB_ENGINE=${{ secrets.DB_ENGINE }} >> .env
+          # echo POSTGRES_USER=${{ secrets.POSTGRES_USER }} >> .env
+          # echo POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }} >> .env
+          # echo DB_HOST=${{ secrets.DB_HOST }} >> .env
+          # echo DB_PORT=${{ secrets.DB_PORT }} >> .env
+          # echo SECRET_KEY=${{ secrets.SECRET_KEY }} >> .env
+          # echo ALLOWED_HOSTS=${{ secrets.ALLOWED_HOSTS }} >> .env
+          # echo DEBUG=${{ secrets.DEBUG }} >> .env
+          # sudo docker-compose up -d
 
   send_message:
 
