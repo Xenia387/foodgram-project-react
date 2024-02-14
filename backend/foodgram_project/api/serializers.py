@@ -416,7 +416,7 @@ class FollowSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if user == author:
             raise serializers.ValidationError(
-                detail='Вы не можете подписаться на себя',
+                {'value': 'Вы не можете подписаться на себя'}
             )
         return value
 
