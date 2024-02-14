@@ -1,8 +1,9 @@
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+# from django.conf import settings
 
 from users.models import User
-from foodgram_project.settings import MIN_VALUE, MAX_VALUE
+from foodgram_project.settings import MIN_VALUE, MAX_VALUE, ZERO, THOUSAND
 
 FIELDS_RECIPE_MODELS_MAX_LENGTH: int = 200
 FIELD_COLOR_MAX_LENGTH: int = 16
@@ -135,8 +136,8 @@ class IngredientRecipe(models.Model):
         verbose_name='Количество ингредиентов',
         default=MIN_VALUE,
         validators=[
-            MinValueValidator(0),
-            MaxValueValidator(1000)
+            MinValueValidator(ZERO),
+            MaxValueValidator(THOUSAND)
         ],
     )
 

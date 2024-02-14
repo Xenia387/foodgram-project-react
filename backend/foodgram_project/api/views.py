@@ -4,7 +4,7 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet
 from rest_framework import mixins, viewsets, status
 from rest_framework.decorators import action
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
@@ -61,6 +61,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     """Рецепт."""
     queryset = Recipe.objects.all()
     filterset_class = RecipeFilter
+    # permission_classes = [AllowAny, ]
     permission_classes = [IsAuthenticatedOrReadOnly, ]
 
     def get_serializer_class(self):
@@ -84,9 +85,9 @@ class RecipeViewSet(ListCreateDestroyViewSet):
             serializer = self.get_serializer(
                 recipe, data=request.data, partial=True
             )
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()
-                return Response(serializer.data, status=status.HTTP_200_OK)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
         return Response(status=status.HTTP_403_FORBIDDEN)
 
     def destroy(self, request, pk=None):
@@ -102,6 +103,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     @action(
         detail=True,
         methods=['post', 'delete'],
+        permission_classes = [IsAuthenticated, ],
         url_name='favorite',
     )
     def favorite(self, request, pk=None):
@@ -139,6 +141,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
     @action(
         detail=True,
+        permission_classes = [IsAuthenticated, ]
         methods=['post', 'delete'],
         url_name='shopping_cart',
     )
@@ -178,6 +181,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
     @action(
         detail=False,
+        permission_classes = [IsAuthenticated, ]
         methods=['get'],
         url_name='download_shopping_cart',
     )
@@ -244,8 +248,7 @@ class CustomUserViewSet(UserViewSet,
             user.set_password(serializer.validated_data.get('new_password'))
             user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
-        else:
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
 
     @action(
         detail=False,

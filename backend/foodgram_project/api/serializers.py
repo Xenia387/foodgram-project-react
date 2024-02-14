@@ -7,6 +7,7 @@ from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
+# from django.conf import settings
 
 from recipes.models import (Favorite,
                             Follow,
