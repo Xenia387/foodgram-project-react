@@ -411,6 +411,24 @@ class FollowSerializer(serializers.ModelSerializer):
             'author'
         )
 
+    def validate(self, value):
+        author = self.instance
+        user = self.context['request'].user
+        if user == author:
+            raise serializers.ValidationError(
+                detail='Вы не можете подписаться на себя',
+            )
+        return value
+
+    def validate(self, value):
+        user = value.get('user')
+        author = value.get('author')
+
+        if user == author:
+            raise serializers.ValidationError('Вы не можете подписаться на себя')
+
+        return value
+
     def to_representation(self, instance):
         request = self.context.get('request')
         context = {'request': request}
