@@ -3,11 +3,11 @@ import base64
 
 import webcolors
 from django.core.files.base import ContentFile
+from django.conf import settings
 from djoser.serializers import UserCreateSerializer
 from rest_framework import serializers
 from rest_framework.fields import CurrentUserDefault
 from rest_framework.relations import SlugRelatedField
-# from django.conf import settings
 
 from recipes.models import (Favorite,
                             Follow,
@@ -22,7 +22,6 @@ from users.models import (User,
                           FIELDS_USER_MAX_LENGTH,
                           )
 from api.pagination import NUMBER
-from foodgram_project.settings import MIN_VALUE, MAX_VALUE
 
 FIELD_RECIPE_NAME_MAX_LENGTH: int = 400
 
@@ -85,7 +84,8 @@ class IngredientForRecipeCreateSerializer(serializers.ModelSerializer):
         queryset=Ingredient.objects.all()
     )
     amount = serializers.IntegerField(
-        write_only=True, max_value=MAX_VALUE, min_value=MIN_VALUE
+        write_only=True, max_value=settings.MAX_VALUE,
+        min_value=settings.MIN_VALUE
     )
 
     class Meta:
@@ -303,7 +303,7 @@ class RecipeCreateSerializer(serializers.ModelSerializer):
         for ingredient in ingredients:
             create_ingredient = ingredient.get('id')
             create_amount = ingredient.get('amount')
-            IngredientRecipe.objects.create(
+            IngredientRecipe.objects.bulk_create(
                 ingredient=create_ingredient,
                 amount=create_amount,
                 recipe=recipe

@@ -63,7 +63,6 @@ class RecipeViewSet(ListCreateDestroyViewSet):
     """Рецепт."""
     queryset = Recipe.objects.all()
     filterset_class = RecipeFilter
-    # permission_classes = [AllowAny, ]
     permission_classes = [IsAuthenticatedOrReadOnly, ]
 
     def get_serializer_class(self):
@@ -96,9 +95,9 @@ class RecipeViewSet(ListCreateDestroyViewSet):
         recipe = get_object_or_404(Recipe, id=pk)
         user = request.user
         if recipe.author == user:
-            if not Recipe.objects.filter(author=user, id=pk).exists():
+            if not user.recipe.filter(id=pk).exists():
                 return Response(status=status.HTTP_404_NOT_FOUND)
-            Recipe.objects.filter(author=user, id=pk).delete()
+            user.recipe.filter(id=pk).delete()
             return Response(status=status.HTTP_204_NO_CONTENT)
         return Response(status=status.HTTP_403_FORBIDDEN)
 
@@ -273,20 +272,18 @@ class CustomUserViewSet(UserViewSet,
         author = get_object_or_404(User, id=id)
         author_in_subc = user.follower.filter(author=author)
         if request.method == 'POST':
-            if user != author:
-                if author_in_subc.exists():
-                    return Response(
-                        {'error': 'Вы уже подписаны на этого пользователя'},
-                        status=status.HTTP_400_BAD_REQUEST
-                    )
-                Follow.objects.create(user=user, author=author)
-                serializer = self.get_serializer(
-                    author, context={'request': request}
-                )
+            if author_in_subc.exists():
                 return Response(
-                    serializer.data, status=status.HTTP_201_CREATED
+                    {'error': 'Вы уже подписаны на этого пользователя'},
+                    status=status.HTTP_400_BAD_REQUEST
                 )
-            return Response(status=status.HTTP_400_BAD_REQUEST)
+            Follow.objects.create(user=user, author=author)
+            serializer = self.get_serializer(
+                author, context={'request': request}
+            )
+            return Response(
+                serializer.data, status=status.HTTP_201_CREATED
+            )
 
         if request.method == 'DELETE':
             if author_in_subc.exists():
