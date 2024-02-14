@@ -141,7 +141,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
     @action(
         detail=True,
-        permission_classes = [IsAuthenticated, ]
+        permission_classes = [IsAuthenticated, ],
         methods=['post', 'delete'],
         url_name='shopping_cart',
     )
@@ -181,7 +181,7 @@ class RecipeViewSet(ListCreateDestroyViewSet):
 
     @action(
         detail=False,
-        permission_classes = [IsAuthenticated, ]
+        permission_classes = [IsAuthenticated, ],
         methods=['get'],
         url_name='download_shopping_cart',
     )
