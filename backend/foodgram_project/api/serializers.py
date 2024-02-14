@@ -412,8 +412,8 @@ class FollowSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, value):
-        author = self.instance
-        user = self.context['request'].user
+        author = value.get('author')
+        user = value.get('user')
         if user == author:
             raise serializers.ValidationError(
                 {'value': 'Вы не можете подписаться на себя'}
