@@ -91,23 +91,8 @@ pip install -r requirements.txt
 - Docker
 - Docker-compose
 - Docker Hub
-- GitHub%20Actions,
-- Pillow,
-- webcolors,
-- django-colorfield,
-- asgiref==3.3.1,
-- Django==3.1.4,
-- gunicorn==20.0.4,
-- pytz==2020.4,
-- sqlparse==0.4.1,
-- psycopg2==2.8.6,
-- django-filter==2.3.0,
-- djangorestframework==3.11.0,
-- djoser==2.1.0,
-- flake8==6.0.0,
-- flake8-isort==6.0.0,
-- python-decouple==3.8,
-- reportlab==4.0.9,
+- Django
+- Gunicorn,
 
 Автор: Анисимова Ксения
 - email: anis.xenia@yandex.ru
