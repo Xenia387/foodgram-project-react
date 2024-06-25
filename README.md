@@ -108,5 +108,7 @@ source venv/Scripts/activate
 ```bash
 pip install -r requirements.txt
 ```
-email: anis.xenia@yandex.ru
-telegram: @Ksenia_An_mova
+
+Автор: Анисимова Ксения
+- email: anis.xenia@yandex.ru
+- telegram: @Ksenia_An_mova
