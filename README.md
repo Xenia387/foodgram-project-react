@@ -79,6 +79,10 @@ source venv/Scripts/activate
 ```
 
 - Установите зависимости из файла requirements.txt
+  
+```
+python -m pip install --upgrade pip
+```
 
 ```bash
 pip install -r requirements.txt
