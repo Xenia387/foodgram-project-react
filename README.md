@@ -13,7 +13,7 @@
 [![Docker Hub](https://img.shields.io/badge/-Docker%20Hub-464646?style=flat&logo=Docker&logoColor=56C0C0&color=008080)](https://www.docker.com/products/docker-hub)
 [![GitHub%20Actions](https://img.shields.io/badge/-GitHub%20Actions-464646?style=flat&logo=GitHub%20actions&logoColor=56C0C0&color=008080)](https://github.com/features/actions)
 
-## Описание проекта Foodgram
+# Описание проекта Foodgram
 Продуктовый помощник - это приложение для публикации рецептов.
 
 # Возможности проекта:
@@ -54,7 +54,7 @@
   5. Для модели ингредиентов включена фильтрация по названию.
 
 
-## Запуск проекта
+# Запуск проекта
 
 - Клонируйте репозиторий с проектом на свой компьютер
 ```bash
