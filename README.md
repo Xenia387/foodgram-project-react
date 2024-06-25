@@ -1,9 +1,9 @@
 # Продуктовый помощник Foodgram 
 
 # Стек технологий
-Python,
-PostgreSQL,
-Nginx
+- Python,
+- PostgreSQL,
+- Nginx
 Gunicorn,
 Docker,
 Docker-compose,
