@@ -61,7 +61,7 @@
 git clone git@github.com:Xenia387/foodgram-project-react.git
 ```
 
-- Установите и активировате виртуальное окружение
+- Установите и активируйте виртуальное окружение
 
 ```
 python3 -m venv env
