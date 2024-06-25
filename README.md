@@ -58,6 +58,10 @@
 git clone git@github.com:Xenia387/foodgram-project-react.git
 ```
 
+```
+cd foodgram-project-react
+```
+
 - Установите и активируйте виртуальное окружение
 
 ```
