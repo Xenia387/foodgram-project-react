@@ -113,7 +113,7 @@ python manage.py migrate
 - Docker
 - Docker-compose
 - Docker Hub
-- Django
+- Django==3.1.4
 - Gunicorn,
 
 Автор: Анисимова Ксения
